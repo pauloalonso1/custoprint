@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NickMaker3D, Precifique suas impressões 3D com lucro</title>
+<link rel="stylesheet" href="nm3d.css" />
+<style>
+  body { overflow-x: hidden; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* ===== NAV ===== */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    border-bottom: 1px solid transparent;
+    transition: background .25s, border-color .25s, backdrop-filter .25s;
+  }
+  .nav.scrolled { background: color-mix(in oklab, var(--bg) 80%, transparent); backdrop-filter: blur(14px); border-bottom-color: var(--border); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .logo { display: flex; align-items: center; gap: 11px; font-weight: 600; font-size: 19px; letter-spacing: -0.03em; }
+  .logo-mark { width: 38px; height: 38px; border-radius: var(--r-md); display: grid; place-items: center; color: var(--accent-fg);
+    background: var(--accent-500); box-shadow: var(--shadow-card); }
+  .nav-links { display: flex; align-items: center; gap: 30px; }
+  .nav-links a { font-size: 14px; font-weight: 600; color: var(--ink-2); transition: color .15s; }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta { display: flex; align-items: center; gap: 12px; }
+  @media (max-width: 860px) { .nav-links { display: none; } }
+
+  /* ===== HERO ===== */
+  .hero { position: relative; padding: clamp(56px, 8vw, 110px) 0 clamp(40px,5vw,72px); }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background-image:
+      radial-gradient(circle at 18% 24%, rgba(255,255,255,.05) 0 1px, transparent 1px),
+      radial-gradient(circle at 72% 68%, rgba(255,255,255,.04) 0 1px, transparent 1px);
+    background-size: 56px 56px, 80px 80px;
+    mask-image: radial-gradient(900px 500px at 60% 30%, #000, transparent 75%);
+  }
+  .hero-grid { display: grid; grid-template-columns: 1.06fr 0.94fr; gap: clamp(32px, 4vw, 64px); align-items: center; }
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px;
+    padding: 7px 14px; border-radius: var(--r-full); border: 1px solid color-mix(in oklab, var(--accent-500) 30%, transparent);
+    background: color-mix(in oklab, var(--accent-500) 12%, transparent); }
+  .hero h1 { margin: 0 0 22px; }
+  .hero h1 .grad { color: var(--accent-500); }
+  .hero .lede { font-size: clamp(16px, 1.5vw, 19px); color: var(--ink-2); max-width: 540px; line-height: 1.6; margin: 0 0 32px; }
+  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 26px; }
+  .hero-trust { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-3); font-weight: 600; }
+  .trust-dot { color: var(--accent-400); }
+  .avatars { display: flex; }
+  .avatars span { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--bg); margin-left: -9px;
+    background: var(--accent-500); display: grid; place-items: center;
+    font-size: 11px; font-weight: 600; color: var(--accent-fg); }
+  .avatars span:first-child { margin-left: 0; }
+
+  /* hero product card */
+  .hero-card { position: relative; }
+  .hero-card .glow-blob { position: absolute; inset: -40px -20px; z-index: -1;
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--accent-500) 26%, transparent), transparent); filter: blur(24px); }
+  .preview {
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-20);
+    box-shadow: var(--shadow-pop); padding: 22px; transform: rotate(.6deg);
+  }
+  .preview-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .preview-total { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 16px;
+    border-radius: var(--r-12); background: var(--surface-inset); border: 1px solid var(--border); margin-bottom: 16px; }
+  .preview-total .v { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
+  .pv-mk { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: var(--r-10);
+    background: var(--surface-2); border: 1px solid var(--border); border-left: 4px solid var(--mk); margin-bottom: 9px; }
+  .pv-mk .pv-name { font-weight: 700; font-size: 14px; }
+  .pv-mk .pv-sub { font-size: 11px; color: var(--ink-4); font-weight: 600; margin-top: 2px; }
+  .pv-mk .pv-price { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
+  .pv-mk.best { border-color: var(--accent-500); box-shadow: var(--glow); }
+
+  @media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; } .preview { transform: none; } .hero-card { margin-top: 8px; } }
+
+  /* ===== SECTION shell ===== */
+  section.block { padding: clamp(56px, 7vw, 96px) 0; }
+  .sec-head { text-align: center; max-width: 680px; margin: 0 auto clamp(36px,4vw,56px); }
+  .sec-head .eyebrow { display: block; margin-bottom: 14px; }
+  .sec-head h2 { margin: 0 0 14px; }
+  .sec-head p { color: var(--ink-2); font-size: 17px; line-height: 1.6; margin: 0; }
+
+  /* problem cards */
+  .prob-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+  .prob { padding: 26px; }
+  .prob .pic { width: 44px; height: 44px; border-radius: var(--r-10); display: grid; place-items: center; margin-bottom: 16px;
+    background: rgba(239,68,68,.12); color: var(--danger-400); border: 1px solid rgba(239,68,68,.25); }
+  .prob h3 { margin: 0 0 8px; }
+  .prob p { margin: 0; color: var(--ink-3); font-size: 14.5px; line-height: 1.6; }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; counter-reset: step; }
+  .step { padding: 28px; position: relative; }
+  .step .n { counter-increment: step; font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent-400);
+    letter-spacing: 0.1em; margin-bottom: 14px; }
+  .step .n::before { content: "0" counter(step); }
+  .step h3 { margin: 0 0 8px; }
+  .step p { margin: 0; color: var(--ink-3); font-size: 14.5px; line-height: 1.6; }
+
+  /* feature grid */
+  .feat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+  .feat { padding: 26px; }
+  .feat .ic { width: 46px; height: 46px; border-radius: var(--r-10); display: grid; place-items: center; margin-bottom: 16px;
+    color: var(--accent-500); background: color-mix(in oklab, var(--accent-500) 12%, transparent); border: 1px solid color-mix(in oklab, var(--accent-500) 22%, transparent); }
+  .feat h3 { margin: 0 0 7px; font-size: 17px; }
+  .feat p { margin: 0; color: var(--ink-3); font-size: 14px; line-height: 1.6; }
+
+  /* marketplace strip */
+  .mk-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+  .mk-pill { display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: var(--r-full);
+    background: var(--surface); border: 1px solid var(--border); font-weight: 700; font-size: 15px; }
+  .mk-pill i { width: 12px; height: 12px; border-radius: 4px; }
+
+  /* demo */
+  .demo-card { max-width: 760px; margin: 0 auto; padding: clamp(24px,3vw,40px); }
+  .demo-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }
+  .demo-margin-val { font-size: 30px; font-weight: 800; color: var(--accent-400); letter-spacing: -0.02em; }
+  .demo-out { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; margin-top: 8px; }
+  .demo-out .o { padding: 18px; border-radius: var(--r-12); background: var(--surface-inset); border: 1px solid var(--border); }
+  .demo-out .o .k { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-4); }
+  .demo-out .o .v { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; }
+
+  /* testimonials */
+  .quotes { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+  .quote { padding: 26px; display: flex; flex-direction: column; gap: 16px; }
+  .quote .stars { color: var(--warning-400); letter-spacing: 2px; font-size: 15px; }
+  .quote p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink); flex: 1; }
+  .quote .who { display: flex; align-items: center; gap: 11px; }
+  .quote .who .av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; color: var(--accent-fg);
+    background: var(--accent-500); }
+  .quote .who .nm { font-weight: 700; font-size: 14px; }
+  .quote .who .rl { font-size: 12.5px; color: var(--ink-4); }
+
+  /* pricing */
+  .price-toggle { display: flex; justify-content: center; margin-bottom: 36px; }
+  .save-badge { margin-left: 8px; font-size: 11px; font-weight: 800; color: var(--accent-400); }
+  .plans { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; align-items: start; }
+  .plan { padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+  .plan.pop { border-color: var(--accent-500); box-shadow: var(--glow); position: relative; }
+  .plan.pop .pop-tag { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); }
+  .plan .pname { font-weight: 800; font-size: 18px; }
+  .plan .pdesc { font-size: 13.5px; color: var(--ink-3); }
+  .plan .pprice { display: flex; align-items: baseline; gap: 4px; }
+  .plan .pprice .amt { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; }
+  .plan .pprice .per { font-size: 13px; color: var(--ink-3); font-weight: 600; }
+  .plan ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+  .plan li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--ink-2); }
+  .plan li svg { color: var(--accent-400); flex-shrink: 0; margin-top: 1px; }
+
+  /* faq */
+  .faq { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .faq-item { border: 1px solid var(--border); border-radius: var(--r-12); background: var(--surface); overflow: hidden; }
+  .faq-q { width: 100%; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 18px 22px; font-weight: 700; font-size: 15.5px; color: var(--ink); background: none; }
+  .faq-q .pm { color: var(--accent-400); transition: transform .2s; flex-shrink: 0; }
+  .faq-item.open .faq-q .pm { transform: rotate(45deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height .28s ease; }
+  .faq-a-inner { padding: 0 22px 20px; color: var(--ink-3); font-size: 14.5px; line-height: 1.65; }
+
+  /* final cta */
+  .cta-band { position: relative; border-radius: var(--r-20); padding: clamp(40px,5vw,72px); text-align: center; overflow: hidden;
+    background: radial-gradient(900px 400px at 50% -30%, color-mix(in oklab, var(--accent-500) 22%, transparent), transparent 60%), var(--surface); border: 1px solid var(--border-strong); }
+  .cta-band h2 { margin: 0 0 14px; }
+  .cta-band p { color: var(--ink-2); font-size: 17px; margin: 0 auto 30px; max-width: 520px; }
+
+  /* footer */
+  footer.foot { border-top: 1px solid var(--border); padding: 48px 0 40px; margin-top: clamp(56px,7vw,96px); }
+  .foot-grid { display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap; margin-bottom: 32px; }
+  .foot-col h4 { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-4); margin: 0 0 14px; }
+  .foot-col a { display: block; font-size: 14px; color: var(--ink-3); margin-bottom: 9px; }
+  .foot-col a:hover { color: var(--ink); }
+  .foot-bottom { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--ink-4); }
+
+  @media (max-width: 760px) {
+    .prob-grid, .steps, .feat-grid, .quotes, .plans { grid-template-columns: 1fr; }
+    .demo-out { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a class="logo" href="#top">
+      <span class="logo-mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="6" rx="1"/><path d="M6 14H4a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg>
+      </span>
+      NickMaker<span class="accent-text">3D</span>
+    </a>
+    <div class="nav-links">
+      <a href="#como">Como funciona</a>
+      <a href="#recursos">Recursos</a>
+      <a href="#precos">Preços</a>
+      <a href="#faq">Dúvidas</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-ghost btn-sm" href="Precificadora.html">Entrar</a>
+      <a class="btn btn-primary btn-sm" href="Precificadora.html">Testar grátis</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<header class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="hero-eyebrow eyebrow">● Precificadora para impressão 3D</span>
+      <h1 class="t-hero">Pare de vender suas peças 3D <span class="grad">no prejuízo.</span></h1>
+      <p class="lede">A NickMaker3D calcula o preço exato de cada impressão, filamento, energia, depreciação, mão de obra e a taxa de cada marketplace. Sem planilha, sem chute. Em segundos.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary btn-lg" href="Precificadora.html">Calcular meu preço grátis →</a>
+        <a class="btn btn-ghost btn-lg" href="#como">Ver como funciona</a>
+      </div>
+      <div class="hero-trust">
+        <span class="avatars"><span>JM</span><span>RC</span><span>AL</span><span>+</span></span>
+        <span><strong style="color:var(--ink)">+3.200</strong> makers precificando certo</span>
+        <span class="trust-dot">●</span>
+        <span>Sem cartão de crédito</span>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div class="glow-blob"></div>
+      <div class="preview">
+        <div class="preview-head">
+          <span class="chip chip-accent"><span class="dot" style="background:var(--accent-400)"></span>Suporte de fone · PLA</span>
+          <span class="t-xs muted">50 g · 4h30</span>
+        </div>
+        <div class="preview-total">
+          <div>
+            <div class="t-xs muted" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase">Custo total</div>
+            <div class="t-xs muted">7 fatores calculados</div>
+          </div>
+          <div class="v accent-text num">R$ 21,94</div>
+        </div>
+        <div class="pv-mk best" style="--mk:var(--mk-amazon)">
+          <div><div class="pv-name">Amazon <span class="badge-best" style="margin-left:6px">melhor</span></div><div class="pv-sub">Lucro R$ 6,59 · margem 18,3%</div></div>
+          <div class="pv-price num">R$ 35,92</div>
+        </div>
+        <div class="pv-mk" style="--mk:var(--mk-magalu)">
+          <div><div class="pv-name">Magalu</div><div class="pv-sub">Lucro R$ 6,59 · margem 17,6%</div></div>
+          <div class="pv-price num">R$ 37,54</div>
+        </div>
+        <div class="pv-mk" style="--mk:var(--mk-shopee)">
+          <div><div class="pv-name">Shopee</div><div class="pv-sub">Lucro R$ 6,58 · margem 16,2%</div></div>
+          <div class="pv-price num">R$ 40,66</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== PROBLEM ===== -->
+<section class="block">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">O problema</span>
+      <h2 class="t-h1">Quase todo maker erra o preço.</h2>
+      <p>Você lembra do filamento, mas e a energia, o desgaste da impressora, as horas de pós-processamento e a comissão de 20% do marketplace? É aí que o lucro evapora.</p>
+    </div>
+    <div class="prob-grid">
+      <div class="card prob">
+        <div class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 8v6M4.2 6.2l4.3 4.3m7 7 4.3 4.3M2 12h6m8 0h6M4.2 17.8l4.3-4.3m7-7 4.3-4.3"/></svg></div>
+        <h3 class="t-h4">Custos invisíveis</h3>
+        <p>Depreciação, energia e falhas de impressão raramente entram na conta, e somam mais do que você imagina por peça.</p>
+      </div>
+      <div class="card prob">
+        <div class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 9l-5 5-4-4-4 4"/></svg></div>
+        <h3 class="t-h4">Taxas que comem o lucro</h3>
+        <p>Cada marketplace cobra diferente. Um preço que dá lucro na Shopee pode dar prejuízo no Mercado Livre Premium.</p>
+      </div>
+      <div class="card prob">
+        <div class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <h3 class="t-h4">Planilhas que você abandona</h3>
+        <p>Aquela planilha gigante quebra, desatualiza e dá preguiça. No fim, você volta a chutar o preço "no olho".</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW ===== -->
+<section class="block" id="como" style="background:var(--surface-inset)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Como funciona</span>
+      <h2 class="t-h1">Do filamento ao preço de venda em 3 passos.</h2>
+    </div>
+    <div class="steps">
+      <div class="card step"><div class="n"></div><h3 class="t-h3">Informe a impressão</h3><p>Escolha o filamento, o tempo, a impressora e o tempo de acabamento. Presets de PLA, PETG, Ender 3, Bambu Lab e mais já vêm preenchidos.</p></div>
+      <div class="card step"><div class="n"></div><h3 class="t-h3">Veja o custo real</h3><p>A NickMaker3D soma material, energia, depreciação, mão de obra, embalagem e taxa de falha, com gráfico de composição em tempo real.</p></div>
+      <div class="card step"><div class="n"></div><h3 class="t-h3">Compare os canais</h3><p>Defina sua margem e veja o preço ideal em cada marketplace, já com as comissões aplicadas. O sistema destaca a opção mais competitiva.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="block" id="recursos">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Recursos</span>
+      <h2 class="t-h1">Tudo que falta na sua planilha.</h2>
+    </div>
+    <div class="feat-grid">
+      <div class="card feat"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div><h3>Presets de filamento</h3><p>PLA, PETG, ABS, TPU, Nylon e resina com preços de mercado atualizados, é só ajustar a gramatura.</p></div>
+      <div class="card feat"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg></div><h3>Custo de energia preciso</h3><p>Potência × tempo × tarifa da sua região. Nada de estimar "uns centavos" por peça.</p></div>
+      <div class="card feat"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="6" rx="1"/><path d="M6 14H4a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></div><h3>Depreciação da máquina</h3><p>Diluímos o valor da impressora pela vida útil. Cada hora de uso vira um custo real por peça.</p></div>
+      <div class="card feat"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg></div><h3>Preço por marketplace</h3><p>Shopee, Mercado Livre, Amazon, Magalu, Elo7 e loja própria, comissões já embutidas.</p></div>
+      <div class="card feat"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg></div><h3>Composição de custos</h3><p>Gráfico em tempo real mostra para onde vai cada real, e onde dá pra cortar.</p></div>
+      <div class="card feat"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></div><h3>Tema claro e escuro</h3><p>Trabalhe confortável de dia ou de madrugada. Seus dados ficam salvos automaticamente.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MARKETPLACE STRIP ===== -->
+<section class="block" style="background:var(--surface-inset)">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:32px"><span class="eyebrow">Canais suportados</span><h2 class="t-h2">Calcula para onde você vende.</h2></div>
+    <div class="mk-strip">
+      <span class="mk-pill"><i style="background:var(--mk-shopee)"></i>Shopee</span>
+      <span class="mk-pill"><i style="background:var(--mk-ml)"></i>Mercado Livre</span>
+      <span class="mk-pill"><i style="background:var(--mk-amazon)"></i>Amazon</span>
+      <span class="mk-pill"><i style="background:var(--mk-magalu)"></i>Magalu</span>
+      <span class="mk-pill"><i style="background:var(--mk-elo7)"></i>Elo7</span>
+      <span class="mk-pill"><i style="background:var(--accent-500)"></i>Loja própria</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INTERACTIVE DEMO ===== -->
+<section class="block">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">Experimente</span><h2 class="t-h1">Ajuste a margem. Veja o preço mudar.</h2><p>Um exemplo real: um suporte de fone com R$ 21,94 de custo. Arraste a margem desejada.</p></div>
+    <div class="card demo-card">
+      <div class="demo-row">
+        <div>
+          <div class="field-label" style="font-size:14px">Margem de lucro desejada</div>
+          <div class="t-xs muted">sobre o custo de R$ 21,94</div>
+        </div>
+        <div class="demo-margin-val num" id="dMarginVal">30%</div>
+      </div>
+      <input class="range" type="range" min="0" max="120" step="5" value="30" id="dMargin" />
+      <div class="demo-out">
+        <div class="o"><div class="k">Preço sugerido · Amazon</div><div class="v num accent-text" id="dPrice">R$ 35,92</div></div>
+        <div class="o"><div class="k">Seu lucro por peça</div><div class="v num" id="dProfit">R$ 6,59</div></div>
+      </div>
+      <a class="btn btn-primary btn-lg" href="Precificadora.html" style="width:100%;margin-top:22px">Abrir a precificadora completa →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section class="block" style="background:var(--surface-inset)">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">Quem usa</span><h2 class="t-h1">Makers que pararam de adivinhar.</h2></div>
+    <div class="quotes">
+      <div class="card quote"><div class="stars">★★★★★</div><p>"Descobri que estava vendendo 12 dos meus modelos abaixo do custo. Em uma semana reajustei tudo e o faturamento subiu sem vender mais."</p><div class="who"><span class="av">JM</span><div><div class="nm">Júlia Marques</div><div class="rl">Ateliê 3D · Curitiba</div></div></div></div>
+      <div class="card quote"><div class="stars">★★★★★</div><p>"O comparativo de marketplace é genial. Hoje eu sei na hora se vale a pena anunciar no ML Premium ou focar na Shopee."</p><div class="who"><span class="av">RC</span><div><div class="nm">Rafael Costa</div><div class="rl">PrintLab · São Paulo</div></div></div></div>
+      <div class="card quote"><div class="stars">★★★★★</div><p>"Larguei minha planilha de 8 abas. Coloco o filamento e o tempo, e já tenho o preço de venda com lucro garantido."</p><div class="who"><span class="av">AL</span><div><div class="nm">Ana Lima</div><div class="rl">Maker autônoma · Recife</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section class="block" id="precos">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">Planos</span><h2 class="t-h1">Comece grátis. Cresça quando vender mais.</h2></div>
+    <div class="price-toggle">
+      <div class="segmented" id="billToggle">
+        <span class="seg active" data-bill="month">Mensal</span>
+        <span class="seg" data-bill="year">Anual <span class="save-badge">-20%</span></span>
+      </div>
+    </div>
+    <div class="plans">
+      <div class="card plan">
+        <div><div class="pname">Maker</div><div class="pdesc">Para quem está começando a vender.</div></div>
+        <div class="pprice"><span class="amt num">R$ 0</span><span class="per">/ para sempre</span></div>
+        <a class="btn btn-ghost" href="Precificadora.html">Começar grátis</a>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Calculadora completa de custos</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Até 3 marketplaces</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Presets de filamento e impressora</li>
+        </ul>
+      </div>
+      <div class="card plan pop">
+        <span class="badge-best pop-tag">Mais popular</span>
+        <div><div class="pname">Pro</div><div class="pdesc">Para o maker que vive disso.</div></div>
+        <div class="pprice"><span class="amt num" id="proPrice">R$ 19</span><span class="per" id="proPer">/ mês</span></div>
+        <a class="btn btn-primary" href="Precificadora.html">Testar 14 dias grátis</a>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Todos os marketplaces + loja própria</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Orçamentos salvos e ilimitados</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Exportar PDF para o cliente</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Taxas de marketplace sempre atualizadas</li>
+        </ul>
+      </div>
+      <div class="card plan">
+        <div><div class="pname">Studio</div><div class="pdesc">Para times e produção em escala.</div></div>
+        <div class="pprice"><span class="amt num" id="stdPrice">R$ 49</span><span class="per" id="stdPer">/ mês</span></div>
+        <a class="btn btn-ghost" href="Precificadora.html">Falar com vendas</a>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Tudo do Pro</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Até 5 usuários no mesmo painel</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Catálogo de produtos e lotes</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>Suporte prioritário</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="block" id="faq" style="background:var(--surface-inset)">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">Dúvidas</span><h2 class="t-h1">Perguntas frequentes</h2></div>
+    <div class="faq">
+      <div class="faq-item"><button class="faq-q">As taxas dos marketplaces ficam atualizadas?<span class="pm"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-a"><div class="faq-a-inner">Sim. Acompanhamos as comissões da Shopee, Mercado Livre, Amazon e Magalu e atualizamos os percentuais sempre que mudam, você sempre precifica com os números vigentes.</div></div></div>
+      <div class="faq-item"><button class="faq-q">Preciso entender de contabilidade?<span class="pm"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-a"><div class="faq-a-inner">Não. Você informa coisas que já conhece, preço do filamento, tempo de impressão, valor da sua hora, e a NickMaker3D faz toda a matemática por você.</div></div></div>
+      <div class="faq-item"><button class="faq-q">Funciona para impressão em resina?<span class="pm"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-a"><div class="faq-a-inner">Sim. Há presets para resina e impressoras como a Anycubic Photon. Você ajusta o custo do material por mililitro/grama e o tempo de cura.</div></div></div>
+      <div class="faq-item"><button class="faq-q">Meus dados ficam salvos?<span class="pm"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-a"><div class="faq-a-inner">No plano gratuito, seus valores ficam salvos no próprio navegador. Nos planos pagos você guarda orçamentos na nuvem e acessa de qualquer dispositivo.</div></div></div>
+      <div class="faq-item"><button class="faq-q">Posso cancelar quando quiser?<span class="pm"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-a"><div class="faq-a-inner">Sim, sem fidelidade. Você pode voltar para o plano gratuito a qualquer momento e continuar usando a calculadora de custos.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINAL CTA ===== -->
+<section class="block">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2 class="t-hero">Descubra o preço certo da sua próxima peça.</h2>
+      <p>Leva menos de um minuto e não precisa de cadastro para começar.</p>
+      <a class="btn btn-primary btn-lg" href="Precificadora.html">Calcular meu preço grátis →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-col" style="max-width:280px">
+        <a class="logo" href="#top" style="margin-bottom:14px"><span class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="6" rx="1"/><path d="M6 14H4a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></span>NickMaker<span class="accent-text">3D</span></a>
+        <p class="t-sm muted" style="margin:0">A precificadora inteligente feita para quem vive de impressão 3D.</p>
+      </div>
+      <div class="foot-col"><h4>Produto</h4><a href="#recursos">Recursos</a><a href="#como">Como funciona</a><a href="#precos">Preços</a><a href="Precificadora.html">Abrir app</a></div>
+      <div class="foot-col"><h4>Recursos</h4><a href="#faq">Dúvidas</a><a href="#">Blog do maker</a><a href="#">Tabela de taxas</a></div>
+      <div class="foot-col"><h4>Empresa</h4><a href="#">Sobre</a><a href="#">Contato</a><a href="#">Termos</a></div>
+    </div>
+    <div class="foot-bottom"><span>© 2026 NickMaker3D. Feito para makers brasileiros.</span><span>Taxas atualizadas · Junho 2026</span></div>
+  </div>
+</footer>
+
+<script>
+  // nav scroll state
+  const nav = document.getElementById('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 12);
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach((item) => {
+    const q = item.querySelector('.faq-q');
+    const a = item.querySelector('.faq-a');
+    q.addEventListener('click', () => {
+      const open = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach((o) => { o.classList.remove('open'); o.querySelector('.faq-a').style.maxHeight = null; });
+      if (!open) { item.classList.add('open'); a.style.maxHeight = a.scrollHeight + 'px'; }
+    });
+  });
+
+  // pricing toggle
+  const prices = { month: { pro: 'R$ 19', std: 'R$ 49', per: '/ mês' }, year: { pro: 'R$ 15', std: 'R$ 39', per: '/ mês · cobrado anual' } };
+  document.querySelectorAll('#billToggle .seg').forEach((seg) => {
+    seg.addEventListener('click', () => {
+      document.querySelectorAll('#billToggle .seg').forEach((s) => s.classList.remove('active'));
+      seg.classList.add('active');
+      const b = prices[seg.dataset.bill];
+      document.getElementById('proPrice').textContent = b.pro;
+      document.getElementById('stdPrice').textContent = b.std;
+      document.getElementById('proPer').textContent = b.per;
+      document.getElementById('stdPer').textContent = b.per;
+    });
+  });
+
+  // interactive demo
+  const COST = 21.94, COMM = 0.15, FIXED = 2.00; // Amazon
+  const dM = document.getElementById('dMargin');
+  const fmt = (v) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const updateDemo = () => {
+    const m = +dM.value;
+    document.getElementById('dMarginVal').textContent = m + '%';
+    const profit = COST * (m / 100);
+    const price = (COST + profit + FIXED) / (1 - COMM);
+    document.getElementById('dPrice').textContent = fmt(price);
+    document.getElementById('dProfit').textContent = fmt(profit);
+  };
+  dM.addEventListener('input', updateDemo); updateDemo();
+</script>
+</body>
+</html>
