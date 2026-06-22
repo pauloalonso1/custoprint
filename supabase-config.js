@@ -2,9 +2,10 @@
    SUPABASE CONFIG — CustoPrint MVP
    ============================================================
 
-   SQL para criar a tabela no Supabase (rode no SQL Editor):
+   SQL de setup (rode no SQL Editor do Supabase):
 
-   CREATE TABLE leads (
+   -- Tabela de leads
+   CREATE TABLE IF NOT EXISTS leads (
      id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
      nome text NOT NULL,
      email text NOT NULL,
@@ -13,16 +14,42 @@
      created_at timestamptz DEFAULT now()
    );
 
+   -- Funcao segura para insert (SECURITY DEFINER = bypassa RLS)
+   CREATE OR REPLACE FUNCTION insert_lead(
+     p_nome text,
+     p_email text,
+     p_whatsapp text,
+     p_consent_at timestamptz
+   ) RETURNS void
+   LANGUAGE plpgsql
+   SECURITY DEFINER
+   SET search_path = public
+   AS $$
+   BEGIN
+     INSERT INTO leads (nome, email, whatsapp, consent_at)
+     VALUES (p_nome, p_email, p_whatsapp, p_consent_at);
+   END;
+   $$;
+
+   -- Permissoes
+   GRANT EXECUTE ON FUNCTION insert_lead TO anon;
+   REVOKE ALL ON leads FROM anon;
+   GRANT SELECT, DELETE ON leads TO authenticated;
+
+   -- RLS: apenas authenticated pode ler/deletar
    ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 
-   CREATE POLICY "anon_insert" ON leads
-     FOR INSERT TO anon WITH CHECK (true);
+   DROP POLICY IF EXISTS "anon_insert" ON leads;
+   DROP POLICY IF EXISTS "anon_select" ON leads;
+   DROP POLICY IF EXISTS "anon_select_own" ON leads;
 
    CREATE POLICY "auth_select" ON leads
      FOR SELECT TO authenticated USING (true);
 
    CREATE POLICY "auth_delete" ON leads
      FOR DELETE TO authenticated USING (true);
+
+   NOTIFY pgrst, 'reload schema';
 
    ============================================================ */
 
@@ -39,11 +66,13 @@ function getSupabase() {
 
 async function saveLead(nome, email, whatsapp, consentAt) {
   const sb = getSupabase();
-  const { data, error } = await sb.from('leads').insert([{
-    nome, email, whatsapp, consent_at: consentAt
-  }]);
+  const { error } = await sb.rpc('insert_lead', {
+    p_nome: nome,
+    p_email: email,
+    p_whatsapp: whatsapp,
+    p_consent_at: consentAt
+  });
   if (error) throw error;
-  return data;
 }
 
 async function deleteLead(id) {

@@ -534,6 +534,16 @@
     }
     if (!valid) return;
 
+    // rate limit: 1 envio a cada 30s
+    const lastSubmit = parseInt(localStorage.getItem('nm3d_last_submit') || '0', 10);
+    const elapsed = Date.now() - lastSubmit;
+    if (elapsed < 30000) {
+      msg.className = 'form-msg show fail';
+      msg.style.display = 'block';
+      msg.textContent = 'Aguarde ' + Math.ceil((30000 - elapsed) / 1000) + 's antes de tentar novamente.';
+      return;
+    }
+
     // submit
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-sm"></span> Enviando...';
@@ -541,6 +551,7 @@
     msg.style.display = 'none';
 
     try {
+      localStorage.setItem('nm3d_last_submit', String(Date.now()));
       await saveLead(nome, email, whatsapp, new Date().toISOString());
       localStorage.setItem('nm3d_lead', JSON.stringify({ nome, email, whatsapp }));
       window.location.href = 'calculadora.html';
