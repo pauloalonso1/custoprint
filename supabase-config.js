@@ -26,8 +26,8 @@
 
    ============================================================ */
 
-const SUPABASE_URL = 'SUA_SUPABASE_URL_AQUI';
-const SUPABASE_ANON_KEY = 'SUA_SUPABASE_ANON_KEY_AQUI';
+const SUPABASE_URL = 'https://drcerqugqdzjxxilrdab.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyY2VycXVncWR6anh4aWxyZGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNzk1MzcsImV4cCI6MjA5NzY1NTUzN30.9cT7QsqLucWDtLimMokUgNsZjTt4k41APEvigkd70E8';
 
 let _supabase = null;
 function getSupabase() {
