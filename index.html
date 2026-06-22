@@ -522,10 +522,12 @@
       localStorage.setItem('nm3d_lead', JSON.stringify({ nome, email, whatsapp }));
       window.location.href = 'calculadora.html';
     } catch (err) {
-      console.error(err);
-      // fallback: save locally and redirect anyway
-      localStorage.setItem('nm3d_lead', JSON.stringify({ nome, email, whatsapp }));
-      window.location.href = 'calculadora.html';
+      console.error('Erro Supabase:', err);
+      btn.disabled = false;
+      btn.innerHTML = 'Acessar calculadora gratis →';
+      msg.className = 'form-msg show fail';
+      msg.style.display = 'block';
+      msg.textContent = 'Erro ao salvar: ' + (err.message || 'tente novamente');
     }
   }
 </script>
