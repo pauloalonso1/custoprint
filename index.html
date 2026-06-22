@@ -87,7 +87,14 @@
   .hero-stats .st:last-child { border-right: none; margin-right: 0; }
   .hero-stats .st .k { font-family: var(--display); font-size: 26px; }
   .hero-stats .st .v { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); margin-top: 6px; max-width: 16ch; }
-  @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } .hero h1 { max-width: 16ch; } }
+  @media (max-width: 900px) {
+    .wrap { padding: 0 16px; }
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-copy { text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .hero h1 { max-width: 16ch; }
+    .hero .lede { margin-left: auto; margin-right: auto; }
+    .hero-stats { justify-content: center; }
+  }
 
   /* LEAD FORM CARD */
   .form-card {
