@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CustoPrint — Calculadora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #000000;
+    --panel: #0E0E0F;
+    --panel-2: #141416;
+    --panel-3: #1A1A1D;
+    --line: rgba(255,255,255,.09);
+    --line-2: rgba(255,255,255,.16);
+    --ink: #FFFFFF;
+    --muted: #9A9AA0;
+    --muted-2: #6C6C72;
+    --acid: #C5F230;
+    --acid-dim: rgba(197,242,48,.13);
+    --acid-line: rgba(197,242,48,.4);
+    --display: "Archivo Black", "Archivo", system-ui, sans-serif;
+    --sans: "Archivo", system-ui, -apple-system, sans-serif;
+    --mono: "Geist Mono", ui-monospace, monospace;
+    --cut: 16px;
+    --cost-material: #3b82f6; --cost-energy: #f5b21f; --cost-deprec: #a855f7; --cost-fail: #f0454d;
+    --mk-shopee: #EE4D2D; --mk-ml: #FFE600;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-weight: 400; line-height: 1.55;
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input, select { font-family: inherit; }
+  ::selection { background: var(--acid); color: #000; }
+
+  .acid { color: var(--acid); }
+  .cut { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%); }
+
+  /* APP LAYOUT */
+  .app { max-width: 1100px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 40px) 60px; }
+
+  /* TOPBAR */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 22px 0; border-bottom: 1px solid var(--line); margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .logo { font-family: var(--display); font-size: 20px; text-transform: uppercase; display: flex; align-items: center; gap: 11px; }
+  .logo .mk { width: 34px; height: 34px; background: var(--acid); color: #000; display: grid; place-items: center; }
+  .logo .mk svg { width: 19px; height: 19px; }
+  .topbar-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .welcome { font-size: 14px; color: var(--muted); }
+  .welcome b { color: var(--acid); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-weight: 600; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 18px; transition: all .15s; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--ink); }
+  .btn:hover { border-color: var(--acid-line); color: var(--acid); }
+
+  /* BODY GRID */
+  .body-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 800px) { .body-grid { grid-template-columns: 1fr; } }
+
+  /* PANELS */
+  .panel { background: var(--panel); border: 1px solid var(--line); padding: 28px 26px; }
+  .panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+  .panel-icon { width: 34px; height: 34px; background: var(--acid-dim); color: var(--acid); display: grid; place-items: center; flex-shrink: 0; }
+  .panel-title { font-family: var(--display); font-size: 15px; text-transform: uppercase; margin: 0; }
+
+  /* FIELDS */
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .field-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .field-hint { font-size: 12px; color: var(--muted-2); }
+  .input {
+    width: 100%; font-size: 14px; font-weight: 500; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line-2); padding: 10px 13px;
+    font-family: var(--sans); transition: border-color .15s;
+  }
+  .input:focus { outline: none; border-color: var(--acid); box-shadow: 0 0 0 3px rgba(197,242,48,.15); }
+  .input::placeholder { color: var(--muted-2); }
+  select.input { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239A9AA0' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; }
+  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .input-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .input-suffix { position: relative; }
+  .input-suffix .suf { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 11px; color: var(--muted-2); pointer-events: none; }
+  .input-suffix .input { padding-right: 50px; }
+
+  /* MARGIN SLIDER */
+  .margin-block { margin-top: 6px; padding: 16px; background: rgba(197,242,48,.06); border: 1px solid var(--acid-line); }
+  .margin-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .margin-val { font-family: var(--display); font-size: 28px; color: var(--acid); }
+  .range { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--panel-3); outline: none; cursor: pointer; }
+  .range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 0; background: var(--acid); cursor: pointer; }
+  .range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 0; border: none; background: var(--acid); cursor: pointer; }
+  .margin-scale { display: flex; justify-content: space-between; margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--muted-2); }
+
+  /* RESULTS */
+  .results-col { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 16px; }
+  @media (max-width: 800px) { .results-col { position: static; } }
+
+  .cost-list { list-style: none; margin: 0; padding: 0; }
+  .cost-list li { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; font-size: 14px; }
+  .cost-list li + li { border-top: 1px solid rgba(255,255,255,.06); }
+  .cost-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; margin-right: 10px; display: inline-block; }
+  .cost-val { font-family: var(--mono); font-weight: 600; }
+
+  .total-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 0; border-top: 1px solid var(--line-2); margin-top: 8px; }
+  .total-label { font-family: var(--display); font-size: 15px; text-transform: uppercase; }
+  .total-val { font-family: var(--display); font-size: 32px; color: var(--acid); }
+
+  /* MARKETPLACE CARDS */
+  .mk-card {
+    background: var(--panel-2); border: 1px solid var(--line); border-left: 4px solid var(--mk-color);
+    padding: 16px 18px; transition: transform .14s;
+  }
+  .mk-card:hover { transform: translateY(-2px); }
+  .mk-card + .mk-card { margin-top: 12px; }
+  .mk-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .mk-name { font-weight: 700; font-size: 15px; }
+  .mk-price { font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .mk-stats { display: flex; gap: 24px; margin-top: 10px; }
+  .mk-stat-k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
+  .mk-stat-v { font-family: var(--mono); font-size: 13px; font-weight: 600; margin-top: 2px; }
+  .mk-stat-v.fee { color: #ff6b73; }
+  .mk-stat-v.profit { color: #56e08a; }
+  .mk-note { font-size: 11px; color: var(--muted-2); margin-top: 8px; }
+  .mk-best { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; background: var(--acid); color: #0A0E00; padding: 3px 8px; font-weight: 600; }
+
+  /* TEASER */
+  .teaser {
+    background: var(--acid-dim); border: 1px dashed var(--acid-line); padding: 24px;
+    text-align: center;
+  }
+  .teaser h3 { font-family: var(--display); font-size: 16px; text-transform: uppercase; margin: 0 0 8px; }
+  .teaser p { font-size: 14px; color: var(--muted); margin: 0 0 16px; line-height: 1.5; }
+  .teaser .tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .teaser .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 12px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
+  .btn-acid { background: var(--acid); color: #0A0E00; border: none; font-family: var(--mono); font-weight: 600; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 24px; cursor: pointer; transition: all .15s; }
+  .btn-acid:hover { background: #d4ff44; transform: translateY(-1px); }
+
+  /* FOOTER */
+  .app-foot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); text-align: center; font-size: 12px; color: var(--muted-2); }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a class="logo" href="index.html">
+      <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="6" rx="1"/><path d="M6 14H4a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></span>
+      CUSTO<span class="acid">PRINT</span>
+    </a>
+    <div class="topbar-right">
+      <span class="welcome" id="welcomeMsg"></span>
+      <button class="btn" onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- BODY -->
+  <div class="body-grid">
+    <!-- INPUTS -->
+    <div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.4"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></span>
+          <h2 class="panel-title">Material / <span class="acid">Filamento</span></h2>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Tipo de material</label>
+          <select class="input" id="filament" onchange="onFilament()">
+            <option value="PLA" data-price="100">PLA</option>
+            <option value="PETG" data-price="120">PETG</option>
+            <option value="ABS" data-price="110">ABS</option>
+            <option value="TPU" data-price="160">TPU (flexivel)</option>
+            <option value="RESINA" data-price="250">Resina</option>
+          </select>
+        </div>
+        <div class="input-row">
+          <div class="field">
+            <label class="field-label">Preco / kg</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="filamentPrice" value="100" step="1" oninput="calc()" />
+              <span class="suf">R$/kg</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Material usado</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="grams" value="50" step="1" oninput="calc()" />
+              <span class="suf">g</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top: 20px;">
+        <div class="panel-head">
+          <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="6" rx="1"/><path d="M6 14H4a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></span>
+          <h2 class="panel-title">Impressao</h2>
+        </div>
+
+        <div class="input-row">
+          <div class="field">
+            <label class="field-label">Horas</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="hours" value="4" min="0" step="1" oninput="calc()" />
+              <span class="suf">h</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Minutos</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="minutes" value="30" min="0" max="59" step="1" oninput="calc()" />
+              <span class="suf">min</span>
+            </div>
+          </div>
+        </div>
+        <p class="field-hint" style="margin-top: 4px;">Estimativas automaticas: energia (200W, R$0,85/kWh) e depreciacao (impressora R$2.000, 5.000h vida util).</p>
+      </div>
+
+      <div class="panel" style="margin-top: 20px;">
+        <div class="panel-head">
+          <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg></span>
+          <h2 class="panel-title">Margem de <span class="acid">Lucro</span></h2>
+        </div>
+
+        <div class="margin-block">
+          <div class="margin-head">
+            <label class="field-label">Margem desejada</label>
+            <span class="margin-val" id="marginVal">30%</span>
+          </div>
+          <input class="range" type="range" min="0" max="150" step="5" value="30" id="margin" oninput="calc()" />
+          <div class="margin-scale"><span>0%</span><span>50%</span><span>100%</span><span>150%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-col">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg></span>
+          <h2 class="panel-title">Custo de <span class="acid">Producao</span></h2>
+        </div>
+
+        <ul class="cost-list">
+          <li><span><span class="cost-dot" style="background:var(--cost-material)"></span>Material</span><span class="cost-val" id="cMaterial">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-energy)"></span>Energia</span><span class="cost-val" id="cEnergy">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-deprec)"></span>Depreciacao</span><span class="cost-val" id="cDeprec">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-fail)"></span>Falha (5%)</span><span class="cost-val" id="cFail">R$ 0,00</span></li>
+        </ul>
+
+        <div class="total-row">
+          <span class="total-label">Custo total</span>
+          <span class="total-val" id="cTotal">R$ 0,00</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg></span>
+          <h2 class="panel-title">Preco por <span class="acid">Marketplace</span></h2>
+        </div>
+
+        <div id="mkResults"></div>
+      </div>
+
+      <div class="teaser">
+        <h3>Quer mais <span class="acid">precisao?</span></h3>
+        <p>A versao completa calcula mao de obra, embalagem, impostos e compara 7 marketplaces.</p>
+        <div class="tags">
+          <span class="tag">Amazon</span>
+          <span class="tag">Magalu</span>
+          <span class="tag">Elo7</span>
+          <span class="tag">Loja propria</span>
+          <span class="tag">Mao de obra</span>
+          <span class="tag">Embalagem</span>
+        </div>
+        <p style="font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--acid); margin: 0;">Em breve</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-foot">
+    <span>CustoPrint &middot; calculadora gratuita &middot; valores salvos no navegador</span>
+  </footer>
+</div>
+
+<script>
+  // check lead
+  const lead = JSON.parse(localStorage.getItem('nm3d_lead') || '{}');
+  if (!lead.nome) { window.location.href = 'index.html'; }
+  else { document.getElementById('welcomeMsg').innerHTML = 'Ola, <b>' + lead.nome.split(' ')[0] + '</b>'; }
+
+  function logout() {
+    localStorage.removeItem('nm3d_lead');
+    window.location.href = 'index.html';
+  }
+
+  // fixed defaults for lite version
+  const POWER = 200;       // W
+  const TARIFF = 0.85;     // R$/kWh
+  const PRINTER_COST = 2000;
+  const PRINTER_LIFE = 5000;
+  const FAIL_RATE = 0.05;
+
+  // marketplaces (lite: shopee + ML classico)
+  const MKS = [
+    { id: 'shopee', label: 'Shopee', comm: 0.20, fixed: 4.00, color: 'var(--mk-shopee)', note: '~20% comissao + R$4 taxa fixa' },
+    { id: 'ml', label: 'Mercado Livre', comm: 0.13, fixed: 6.00, color: 'var(--mk-ml)', note: '~13% comissao + R$6 fixo por unidade' },
+  ];
+
+  const BRL = v => 'R$ ' + (isFinite(v) ? v : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const PCT = v => (isFinite(v) ? v : 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
+
+  function onFilament() {
+    const sel = document.getElementById('filament');
+    const price = sel.options[sel.selectedIndex].dataset.price;
+    if (price) document.getElementById('filamentPrice').value = price;
+    calc();
+  }
+
+  function calc() {
+    const fp = +document.getElementById('filamentPrice').value || 0;
+    const g = +document.getElementById('grams').value || 0;
+    const h = +document.getElementById('hours').value || 0;
+    const m = +document.getElementById('minutes').value || 0;
+    const margin = +document.getElementById('margin').value || 0;
+
+    const printHours = h + m / 60;
+    const material = (fp / 1000) * g;
+    const energy = (POWER / 1000) * printHours * TARIFF;
+    const deprec = (PRINTER_COST / PRINTER_LIFE) * printHours;
+    const subtotal = material + energy + deprec;
+    const fail = subtotal * FAIL_RATE;
+    const total = subtotal + fail;
+
+    document.getElementById('cMaterial').textContent = BRL(material);
+    document.getElementById('cEnergy').textContent = BRL(energy);
+    document.getElementById('cDeprec').textContent = BRL(deprec);
+    document.getElementById('cFail').textContent = BRL(fail);
+    document.getElementById('cTotal').textContent = BRL(total);
+    document.getElementById('marginVal').textContent = margin + '%';
+
+    // marketplace prices
+    let html = '';
+    let bestPrice = Infinity;
+    let bestId = '';
+    const results = MKS.map(mk => {
+      const targetProfit = total * (margin / 100);
+      const denom = Math.max(0.01, 1 - mk.comm);
+      const price = (total + targetProfit + mk.fixed) / denom;
+      const fees = mk.comm * price + mk.fixed;
+      const profit = price - total - fees;
+      const marginPct = price > 0 ? (profit / price) * 100 : 0;
+      if (price < bestPrice) { bestPrice = price; bestId = mk.id; }
+      return { mk, price, fees, profit, marginPct };
+    });
+
+    results.forEach(r => {
+      const best = r.mk.id === bestId;
+      html += `
+        <div class="mk-card" style="--mk-color:${r.mk.color}; ${best ? 'border-color:var(--acid); box-shadow: 0 0 0 1px var(--acid-line);' : ''}">
+          <div class="mk-top">
+            <span class="mk-name">${r.mk.label} ${best ? '<span class="mk-best">melhor</span>' : ''}</span>
+            <span class="mk-price">${BRL(r.price)}</span>
+          </div>
+          <div class="mk-stats">
+            <div><div class="mk-stat-k">Taxas</div><div class="mk-stat-v fee">${BRL(r.fees)}</div></div>
+            <div><div class="mk-stat-k">Lucro</div><div class="mk-stat-v profit">${BRL(r.profit)}</div></div>
+            <div><div class="mk-stat-k">Margem</div><div class="mk-stat-v">${PCT(r.marginPct)}</div></div>
+          </div>
+          <p class="mk-note">${r.mk.note}</p>
+        </div>`;
+    });
+    document.getElementById('mkResults').innerHTML = html;
+
+    // save state
+    localStorage.setItem('nm3d_calc', JSON.stringify({
+      filament: document.getElementById('filament').value,
+      filamentPrice: fp, grams: g, hours: h, minutes: m, margin
+    }));
+  }
+
+  // restore state
+  (function restore() {
+    try {
+      const s = JSON.parse(localStorage.getItem('nm3d_calc') || '{}');
+      if (s.filament) document.getElementById('filament').value = s.filament;
+      if (s.filamentPrice) document.getElementById('filamentPrice').value = s.filamentPrice;
+      if (s.grams) document.getElementById('grams').value = s.grams;
+      if (s.hours !== undefined) document.getElementById('hours').value = s.hours;
+      if (s.minutes !== undefined) document.getElementById('minutes').value = s.minutes;
+      if (s.margin !== undefined) document.getElementById('margin').value = s.margin;
+    } catch {}
+    calc();
+  })();
+</script>
+</body>
+</html>
