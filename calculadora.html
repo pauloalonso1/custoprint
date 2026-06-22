@@ -299,7 +299,13 @@
   // check lead
   const lead = JSON.parse(localStorage.getItem('nm3d_lead') || '{}');
   if (!lead.nome) { window.location.href = 'index.html'; }
-  else { document.getElementById('welcomeMsg').innerHTML = 'Ola, <b>' + lead.nome.split(' ')[0] + '</b>'; }
+  else {
+    const span = document.getElementById('welcomeMsg');
+    const b = document.createElement('b');
+    b.textContent = lead.nome.split(' ')[0];
+    span.textContent = 'Ola, ';
+    span.appendChild(b);
+  }
 
   function logout() {
     localStorage.removeItem('nm3d_lead');
