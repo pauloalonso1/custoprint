@@ -426,6 +426,8 @@
   </footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
 <script>
   // check lead (localStorage or Supabase session)
   (async function checkAuth() {
@@ -433,6 +435,20 @@
 
     if (!lead.nome) {
       try {
+        const sb = getSupabase();
+        // OAuth redirect puts tokens in the URL hash — wait for Supabase to process it
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          await new Promise((resolve) => {
+            const { data: { subscription } } = sb.auth.onAuthStateChange((event) => {
+              if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                subscription.unsubscribe();
+                resolve();
+              }
+            });
+            setTimeout(() => { subscription.unsubscribe(); resolve(); }, 5000);
+          });
+          history.replaceState(null, '', window.location.pathname);
+        }
         const session = await getSession();
         if (session?.user) {
           const u = session.user;
