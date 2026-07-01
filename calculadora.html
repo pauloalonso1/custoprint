@@ -148,6 +148,50 @@
 
   /* FOOTER */
   .app-foot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); text-align: center; font-size: 12px; color: var(--muted-2); }
+
+  /* COMPLETE PROFILE MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
+    display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--panel); width: 100%; max-width: 440px; padding: 40px 36px 36px; position: relative;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%);
+    animation: modalIn .22s ease-out;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
+  .modal-box .m-title { font-family: var(--display); font-size: 22px; text-transform: uppercase; margin: 0 0 8px; }
+  .modal-box .m-sub { font-size: 14px; color: var(--muted); margin: 0 0 24px; line-height: 1.5; }
+  .modal-box .m-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .modal-box .m-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .modal-box .m-input {
+    width: 100%; font-size: 15px; font-weight: 500; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line-2); padding: 13px 16px;
+    font-family: var(--sans); transition: border-color .15s, box-shadow .15s;
+  }
+  .modal-box .m-input::placeholder { color: var(--muted-2); }
+  .modal-box .m-input:focus { outline: none; border-color: var(--acid); box-shadow: 0 0 0 3px rgba(197,242,48,.2); }
+  .modal-box .m-input.error { border-color: #f0454d; }
+  .modal-box .m-error { font-size: 12px; color: #f0454d; margin-top: -8px; margin-bottom: 8px; display: none; }
+  .modal-box .m-error.show { display: block; }
+  .modal-box .m-consent { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; cursor: pointer; }
+  .modal-box .m-consent input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none; width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px;
+    background: var(--bg); border: 1px solid var(--line-2); cursor: pointer; transition: all .15s;
+    display: grid; place-items: center;
+  }
+  .modal-box .m-consent input[type="checkbox"]:checked { background: var(--acid); border-color: var(--acid); }
+  .modal-box .m-consent input[type="checkbox"]:checked::after { content: ""; width: 10px; height: 6px; border-left: 2px solid #0A0E00; border-bottom: 2px solid #0A0E00; transform: rotate(-45deg) translateY(-1px); }
+  .modal-box .m-consent input[type="checkbox"].error { border-color: #f0454d; box-shadow: 0 0 0 2px rgba(240,69,77,.25); }
+  .modal-box .m-consent-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .modal-box .m-consent-text a { color: var(--acid); text-decoration: underline; }
+  .modal-box .m-msg {
+    text-align: center; padding: 12px; margin-top: 12px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; display: none;
+  }
+  .modal-box .m-msg.show { display: block; }
+  .modal-box .m-msg.fail { color: #ff6b73; background: rgba(240,69,77,.12); border: 1px solid rgba(240,69,77,.3); }
 </style>
 </head>
 <body>
@@ -426,54 +470,146 @@
   </footer>
 </div>
 
+<!-- Modal: completar cadastro Google -->
+<div class="modal-overlay" id="completeModal">
+  <div class="modal-box">
+    <h2 class="m-title">Quase la!</h2>
+    <p class="m-sub">Complete seu cadastro para acessar a calculadora.</p>
+    <div class="m-field">
+      <label class="m-label">Nome completo</label>
+      <input class="m-input" type="text" id="cNome" placeholder="Seu nome" />
+    </div>
+    <div class="m-error" id="cNomeErr">Informe seu nome</div>
+    <div class="m-field">
+      <label class="m-label">WhatsApp</label>
+      <input class="m-input" type="tel" id="cWhatsapp" placeholder="(11) 99999-9999" />
+    </div>
+    <div class="m-error" id="cWhatsappErr">Informe seu WhatsApp</div>
+    <label class="m-consent">
+      <input type="checkbox" id="cConsent" />
+      <span class="m-consent-text">Concordo em receber comunicacoes da CalcPro 3D e aceito a <a href="#">Politica de Privacidade</a>.</span>
+    </label>
+    <div class="m-error" id="cConsentErr">Aceite os termos para continuar</div>
+    <button class="btn-acid" style="width:100%; margin-top: 8px;" id="btnComplete" onclick="handleComplete()">Acessar calculadora</button>
+    <div class="m-msg" id="cMsg"></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="supabase-config.js"></script>
 <script>
+  let _pendingGoogleUser = null;
+
+  function maskPhoneCalc(input) {
+    input.addEventListener('input', function () {
+      let v = this.value.replace(/\D/g, '').slice(0, 11);
+      if (v.length > 6) v = '(' + v.slice(0,2) + ') ' + v.slice(2,7) + '-' + v.slice(7);
+      else if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
+      else if (v.length > 0) v = '(' + v;
+      this.value = v;
+    });
+  }
+  maskPhoneCalc(document.getElementById('cWhatsapp'));
+
+  function showWelcome(nome) {
+    const span = document.getElementById('welcomeMsg');
+    const b = document.createElement('b');
+    b.textContent = nome.split(' ')[0];
+    span.textContent = 'Ola, ';
+    span.appendChild(b);
+  }
+
   // check lead (localStorage or Supabase session)
   (async function checkAuth() {
     let lead = JSON.parse(localStorage.getItem('nm3d_lead') || '{}');
 
-    if (!lead.nome) {
-      try {
-        const sb = getSupabase();
-        // OAuth redirect puts tokens in the URL hash — wait for Supabase to process it
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-          await new Promise((resolve) => {
-            const { data: { subscription } } = sb.auth.onAuthStateChange((event) => {
-              if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                subscription.unsubscribe();
-                resolve();
-              }
-            });
-            setTimeout(() => { subscription.unsubscribe(); resolve(); }, 5000);
+    if (lead.nome && lead.whatsapp) {
+      showWelcome(lead.nome);
+      return;
+    }
+
+    try {
+      const sb = getSupabase();
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        await new Promise((resolve) => {
+          const { data: { subscription } } = sb.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+              subscription.unsubscribe();
+              resolve();
+            }
           });
-          history.replaceState(null, '', window.location.pathname);
-        }
-        const session = await getSession();
-        if (session?.user) {
-          const u = session.user;
-          lead = {
-            nome: u.user_metadata?.full_name || u.email.split('@')[0],
-            email: u.email,
-            whatsapp: ''
-          };
-          localStorage.setItem('nm3d_lead', JSON.stringify(lead));
-        } else {
-          window.location.href = 'index.html';
-          return;
-        }
-      } catch {
+          setTimeout(() => { subscription.unsubscribe(); resolve(); }, 5000);
+        });
+        history.replaceState(null, '', window.location.pathname);
+      }
+      const session = await getSession();
+      if (!session?.user) {
         window.location.href = 'index.html';
         return;
       }
-    }
 
-    const span = document.getElementById('welcomeMsg');
-    const b = document.createElement('b');
-    b.textContent = lead.nome.split(' ')[0];
-    span.textContent = 'Ola, ';
-    span.appendChild(b);
+      const u = session.user;
+      const hasWhatsapp = u.user_metadata?.whatsapp;
+
+      if (hasWhatsapp) {
+        lead = { nome: u.user_metadata?.full_name || u.email.split('@')[0], email: u.email, whatsapp: hasWhatsapp };
+        localStorage.setItem('nm3d_lead', JSON.stringify(lead));
+        showWelcome(lead.nome);
+        return;
+      }
+
+      _pendingGoogleUser = u;
+      document.getElementById('cNome').value = u.user_metadata?.full_name || u.user_metadata?.name || '';
+      document.getElementById('completeModal').classList.add('open');
+    } catch {
+      window.location.href = 'index.html';
+    }
   })();
+
+  async function handleComplete() {
+    const nome = document.getElementById('cNome').value.trim();
+    const whatsapp = document.getElementById('cWhatsapp').value.trim();
+    const consent = document.getElementById('cConsent').checked;
+    const btn = document.getElementById('btnComplete');
+    let valid = true;
+
+    document.getElementById('cNomeErr').classList.remove('show');
+    document.getElementById('cWhatsappErr').classList.remove('show');
+    document.getElementById('cConsentErr').classList.remove('show');
+    document.getElementById('cNome').classList.remove('error');
+    document.getElementById('cWhatsapp').classList.remove('error');
+    document.getElementById('cConsent').classList.remove('error');
+
+    if (!nome) { document.getElementById('cNomeErr').classList.add('show'); document.getElementById('cNome').classList.add('error'); valid = false; }
+    if (whatsapp.replace(/\D/g, '').length < 10) { document.getElementById('cWhatsappErr').classList.add('show'); document.getElementById('cWhatsapp').classList.add('error'); valid = false; }
+    if (!consent) { document.getElementById('cConsentErr').classList.add('show'); document.getElementById('cConsent').classList.add('error'); valid = false; }
+    if (!valid) return;
+
+    btn.textContent = 'Salvando...';
+    btn.disabled = true;
+
+    try {
+      await saveLead(nome, _pendingGoogleUser.email, whatsapp, new Date().toISOString());
+
+      const sb = getSupabase();
+      await sb.auth.updateUser({ data: { full_name: nome, whatsapp: whatsapp } });
+
+      const lead = { nome, email: _pendingGoogleUser.email, whatsapp };
+      localStorage.setItem('nm3d_lead', JSON.stringify(lead));
+
+      document.getElementById('completeModal').classList.remove('open');
+      showWelcome(nome);
+    } catch (err) {
+      const msg = document.getElementById('cMsg');
+      msg.textContent = 'Erro ao salvar: ' + (err.message || 'tente novamente');
+      msg.className = 'm-msg show fail';
+    } finally {
+      btn.textContent = 'Acessar calculadora';
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('cWhatsapp').addEventListener('keydown', e => { if (e.key === 'Enter') handleComplete(); });
 
   async function logout() {
     localStorage.removeItem('nm3d_lead');
