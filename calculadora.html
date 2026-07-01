@@ -30,7 +30,7 @@
     --sans: "Archivo", system-ui, -apple-system, sans-serif;
     --mono: "Geist Mono", ui-monospace, monospace;
     --cut: 16px;
-    --cost-material: #3b82f6; --cost-energy: #f5b21f; --cost-deprec: #a855f7; --cost-fail: #f0454d;
+    --cost-material: #3b82f6; --cost-energy: #f5b21f; --cost-deprec: #a855f7; --cost-fail: #f0454d; --cost-labor: #22d3ee;
     --mk-shopee: #EE4D2D; --mk-ml: #FFE600;
   }
   * { box-sizing: border-box; }
@@ -168,12 +168,12 @@
   <div class="body-grid">
     <!-- INPUTS -->
     <div>
+      <!-- MATERIAL / FILAMENTO -->
       <div class="panel">
         <div class="panel-head">
           <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.4"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></span>
           <h2 class="panel-title">Material / <span class="acid">Filamento</span></h2>
         </div>
-
         <div class="field">
           <label class="field-label">Tipo de material</label>
           <select class="input" id="filament" onchange="onFilament()">
@@ -202,13 +202,87 @@
         </div>
       </div>
 
+      <!-- IMPRESSORA 3D -->
       <div class="panel" style="margin-top: 20px;">
         <div class="panel-head">
           <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="6" rx="1"/><path d="M6 14H4a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></span>
+          <h2 class="panel-title">Impressora <span class="acid">3D</span></h2>
+        </div>
+        <div class="field">
+          <label class="field-label">Modelo da impressora</label>
+          <select class="input" id="printer" onchange="onPrinter()">
+            <optgroup label="Creality">
+              <option value="0">Ender 3 V3 SE</option>
+              <option value="1">Ender 3 V3</option>
+              <option value="2">Ender 3 S1 Pro</option>
+              <option value="3">Ender 3 V3 Plus</option>
+              <option value="4">K1</option>
+              <option value="5">K1 Max</option>
+            </optgroup>
+            <optgroup label="Bambu Lab">
+              <option value="6">A1 Mini</option>
+              <option value="7">A1</option>
+              <option value="8">P1S</option>
+              <option value="9">X1 Carbon</option>
+            </optgroup>
+            <optgroup label="Anycubic">
+              <option value="10">Kobra 2</option>
+              <option value="11">Kobra 3</option>
+              <option value="12">Photon Mono M5s (Resina)</option>
+            </optgroup>
+            <optgroup label="Elegoo">
+              <option value="13">Neptune 4</option>
+              <option value="14">Neptune 4 Pro</option>
+              <option value="15">Saturn 3 Ultra (Resina)</option>
+            </optgroup>
+            <optgroup label="Outros">
+              <option value="16">Artillery Sidewinder X4 Plus</option>
+              <option value="17">Voron 2.4 (Kit)</option>
+              <option value="custom">Personalizada (manual)</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="input-row">
+          <div class="field">
+            <label class="field-label">Potencia</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="printerPower" value="350" step="10" oninput="calc()" />
+              <span class="suf">W</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Custo do kWh</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="tariff" value="0.85" step="0.01" oninput="calc()" />
+              <span class="suf">R$/kWh</span>
+            </div>
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="field">
+            <label class="field-label">Valor da impressora</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="printerCost" value="1200" step="100" oninput="calc()" />
+              <span class="suf">R$</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Vida util</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="printerLife" value="3000" step="100" oninput="calc()" />
+              <span class="suf">h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMPRESSAO -->
+      <div class="panel" style="margin-top: 20px;">
+        <div class="panel-head">
+          <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
           <h2 class="panel-title">Impressao</h2>
         </div>
-
-        <div class="input-row">
+        <div class="input-row-3">
           <div class="field">
             <label class="field-label">Horas</label>
             <div class="input-suffix">
@@ -223,16 +297,46 @@
               <span class="suf">min</span>
             </div>
           </div>
+          <div class="field">
+            <label class="field-label">Taxa de falha</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="failRate" value="5" min="0" max="50" step="1" oninput="calc()" />
+              <span class="suf">%</span>
+            </div>
+          </div>
         </div>
-        <p class="field-hint" style="margin-top: 4px;">Estimativas automaticas: energia (200W, R$0,85/kWh) e depreciacao (impressora R$2.000, 5.000h vida util).</p>
       </div>
 
+      <!-- MAO DE OBRA -->
+      <div class="panel" style="margin-top: 20px;">
+        <div class="panel-head">
+          <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+          <h2 class="panel-title">Mao de <span class="acid">Obra</span></h2>
+        </div>
+        <div class="input-row">
+          <div class="field">
+            <label class="field-label">Pos-processamento</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="laborMin" value="0" min="0" step="5" oninput="calc()" />
+              <span class="suf">min</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Valor / hora</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="laborRate" value="20" step="5" oninput="calc()" />
+              <span class="suf">R$/h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARGEM DE LUCRO -->
       <div class="panel" style="margin-top: 20px;">
         <div class="panel-head">
           <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg></span>
           <h2 class="panel-title">Margem de <span class="acid">Lucro</span></h2>
         </div>
-
         <div class="margin-block">
           <div class="margin-head">
             <label class="field-label">Margem desejada</label>
@@ -256,7 +360,8 @@
           <li><span><span class="cost-dot" style="background:var(--cost-material)"></span>Material</span><span class="cost-val" id="cMaterial">R$ 0,00</span></li>
           <li><span><span class="cost-dot" style="background:var(--cost-energy)"></span>Energia</span><span class="cost-val" id="cEnergy">R$ 0,00</span></li>
           <li><span><span class="cost-dot" style="background:var(--cost-deprec)"></span>Depreciacao</span><span class="cost-val" id="cDeprec">R$ 0,00</span></li>
-          <li><span><span class="cost-dot" style="background:var(--cost-fail)"></span>Falha (5%)</span><span class="cost-val" id="cFail">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-labor)"></span>Mao de obra</span><span class="cost-val" id="cLabor">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-fail)"></span><span id="cFailLabel">Falha (5%)</span></span><span class="cost-val" id="cFail">R$ 0,00</span></li>
         </ul>
 
         <div class="total-row">
@@ -335,14 +440,28 @@
     window.location.href = 'index.html';
   }
 
-  // fixed defaults for lite version
-  const POWER = 200;       // W
-  const TARIFF = 0.85;     // R$/kWh
-  const PRINTER_COST = 2000;
-  const PRINTER_LIFE = 5000;
-  const FAIL_RATE = 0.05;
+  // printer database
+  const PRINTERS = [
+    { power: 350, cost: 1200, life: 3000 },  // 0  Creality Ender 3 V3 SE
+    { power: 350, cost: 1400, life: 3500 },  // 1  Creality Ender 3 V3
+    { power: 350, cost: 1800, life: 4000 },  // 2  Creality Ender 3 S1 Pro
+    { power: 350, cost: 2200, life: 4000 },  // 3  Creality Ender 3 V3 Plus
+    { power: 350, cost: 2500, life: 5000 },  // 4  Creality K1
+    { power: 350, cost: 3500, life: 5000 },  // 5  Creality K1 Max
+    { power: 150, cost: 1800, life: 5000 },  // 6  Bambu Lab A1 Mini
+    { power: 200, cost: 2500, life: 5000 },  // 7  Bambu Lab A1
+    { power: 350, cost: 3500, life: 6000 },  // 8  Bambu Lab P1S
+    { power: 350, cost: 6000, life: 8000 },  // 9  Bambu Lab X1 Carbon
+    { power: 400, cost: 1300, life: 3000 },  // 10 Anycubic Kobra 2
+    { power: 400, cost: 2000, life: 4000 },  // 11 Anycubic Kobra 3
+    { power: 36,  cost: 2000, life: 2000 },  // 12 Anycubic Photon Mono M5s
+    { power: 350, cost: 1500, life: 3000 },  // 13 Elegoo Neptune 4
+    { power: 350, cost: 2000, life: 4000 },  // 14 Elegoo Neptune 4 Pro
+    { power: 54,  cost: 2800, life: 2000 },  // 15 Elegoo Saturn 3 Ultra
+    { power: 500, cost: 2200, life: 4000 },  // 16 Artillery Sidewinder X4 Plus
+    { power: 350, cost: 4000, life: 6000 },  // 17 Voron 2.4 (Kit)
+  ];
 
-  // marketplaces (lite: shopee + ML classico)
   const MKS = [
     { id: 'shopee', label: 'Shopee', comm: 0.20, fixed: 4.00, color: 'var(--mk-shopee)', note: '~20% comissao + R$4 taxa fixa' },
     { id: 'ml', label: 'Mercado Livre', comm: 0.13, fixed: 6.00, color: 'var(--mk-ml)', note: '~13% comissao + R$6 fixo por unidade' },
@@ -350,6 +469,18 @@
 
   const BRL = v => 'R$ ' + (isFinite(v) ? v : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const PCT = v => (isFinite(v) ? v : 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
+
+  function onPrinter() {
+    const val = document.getElementById('printer').value;
+    if (val === 'custom') { calc(); return; }
+    const p = PRINTERS[+val];
+    if (p) {
+      document.getElementById('printerPower').value = p.power;
+      document.getElementById('printerCost').value = p.cost;
+      document.getElementById('printerLife').value = p.life;
+    }
+    calc();
+  }
 
   function onFilament() {
     const sel = document.getElementById('filament');
@@ -364,23 +495,32 @@
     const h = +document.getElementById('hours').value || 0;
     const m = +document.getElementById('minutes').value || 0;
     const margin = +document.getElementById('margin').value || 0;
+    const power = +document.getElementById('printerPower').value || 0;
+    const tariff = +document.getElementById('tariff').value || 0;
+    const pCost = +document.getElementById('printerCost').value || 0;
+    const pLife = +document.getElementById('printerLife').value || 1;
+    const failPct = +document.getElementById('failRate').value || 0;
+    const laborMin = +document.getElementById('laborMin').value || 0;
+    const laborRate = +document.getElementById('laborRate').value || 0;
 
     const printHours = h + m / 60;
     const material = (fp / 1000) * g;
-    const energy = (POWER / 1000) * printHours * TARIFF;
-    const deprec = (PRINTER_COST / PRINTER_LIFE) * printHours;
-    const subtotal = material + energy + deprec;
-    const fail = subtotal * FAIL_RATE;
+    const energy = (power / 1000) * printHours * tariff;
+    const deprec = (pCost / Math.max(1, pLife)) * printHours;
+    const labor = (laborMin / 60) * laborRate;
+    const subtotal = material + energy + deprec + labor;
+    const fail = subtotal * (failPct / 100);
     const total = subtotal + fail;
 
     document.getElementById('cMaterial').textContent = BRL(material);
     document.getElementById('cEnergy').textContent = BRL(energy);
     document.getElementById('cDeprec').textContent = BRL(deprec);
+    document.getElementById('cLabor').textContent = BRL(labor);
+    document.getElementById('cFailLabel').textContent = 'Falha (' + failPct + '%)';
     document.getElementById('cFail').textContent = BRL(fail);
     document.getElementById('cTotal').textContent = BRL(total);
     document.getElementById('marginVal').textContent = margin + '%';
 
-    // marketplace prices
     let html = '';
     let bestPrice = Infinity;
     let bestId = '';
@@ -413,14 +553,15 @@
     });
     document.getElementById('mkResults').innerHTML = html;
 
-    // save state
     localStorage.setItem('nm3d_calc', JSON.stringify({
       filament: document.getElementById('filament').value,
-      filamentPrice: fp, grams: g, hours: h, minutes: m, margin
+      filamentPrice: fp, grams: g, hours: h, minutes: m, margin,
+      printer: document.getElementById('printer').value,
+      printerPower: power, tariff, printerCost: pCost, printerLife: pLife,
+      failRate: failPct, laborMin, laborRate
     }));
   }
 
-  // restore state
   (function restore() {
     try {
       const s = JSON.parse(localStorage.getItem('nm3d_calc') || '{}');
@@ -430,6 +571,14 @@
       if (s.hours !== undefined) document.getElementById('hours').value = s.hours;
       if (s.minutes !== undefined) document.getElementById('minutes').value = s.minutes;
       if (s.margin !== undefined) document.getElementById('margin').value = s.margin;
+      if (s.printer !== undefined) document.getElementById('printer').value = s.printer;
+      if (s.printerPower !== undefined) document.getElementById('printerPower').value = s.printerPower;
+      if (s.tariff !== undefined) document.getElementById('tariff').value = s.tariff;
+      if (s.printerCost !== undefined) document.getElementById('printerCost').value = s.printerCost;
+      if (s.printerLife !== undefined) document.getElementById('printerLife').value = s.printerLife;
+      if (s.failRate !== undefined) document.getElementById('failRate').value = s.failRate;
+      if (s.laborMin !== undefined) document.getElementById('laborMin').value = s.laborMin;
+      if (s.laborRate !== undefined) document.getElementById('laborRate').value = s.laborRate;
     } catch {}
     calc();
   })();
