@@ -296,19 +296,41 @@
 </div>
 
 <script>
-  // check lead
-  const lead = JSON.parse(localStorage.getItem('nm3d_lead') || '{}');
-  if (!lead.nome) { window.location.href = 'index.html'; }
-  else {
+  // check lead (localStorage or Supabase session)
+  (async function checkAuth() {
+    let lead = JSON.parse(localStorage.getItem('nm3d_lead') || '{}');
+
+    if (!lead.nome) {
+      try {
+        const session = await getSession();
+        if (session?.user) {
+          const u = session.user;
+          lead = {
+            nome: u.user_metadata?.full_name || u.email.split('@')[0],
+            email: u.email,
+            whatsapp: ''
+          };
+          localStorage.setItem('nm3d_lead', JSON.stringify(lead));
+        } else {
+          window.location.href = 'index.html';
+          return;
+        }
+      } catch {
+        window.location.href = 'index.html';
+        return;
+      }
+    }
+
     const span = document.getElementById('welcomeMsg');
     const b = document.createElement('b');
     b.textContent = lead.nome.split(' ')[0];
     span.textContent = 'Ola, ';
     span.appendChild(b);
-  }
+  })();
 
-  function logout() {
+  async function logout() {
     localStorage.removeItem('nm3d_lead');
+    try { await logoutAdmin(); } catch {}
     window.location.href = 'index.html';
   }
 
