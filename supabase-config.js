@@ -1,5 +1,5 @@
 /* ============================================================
-   SUPABASE CONFIG — CustoPrint MVP
+   SUPABASE CONFIG — CalcPro 3D MVP
    ============================================================
 
    SQL de setup (rode no SQL Editor do Supabase):

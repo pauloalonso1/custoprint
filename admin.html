@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>CustoPrint — Admin</title>
+<title>CalcPro 3D — Admin</title>
 <meta name="robots" content="noindex, nofollow" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -155,7 +155,7 @@
 <!-- LOGIN -->
 <div class="login-wrap" id="loginView">
   <div class="login-card">
-    <div class="login-logo">CUSTO<span class="acid">PRINT</span></div>
+    <div class="login-logo">CALC<span class="acid">PRO 3D</span></div>
     <p class="login-sub">Painel administrativo</p>
 
     <div class="field">
@@ -177,7 +177,7 @@
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <div class="dash-logo">
         <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="6" rx="1"/><path d="M6 14H4a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></span>
-        CUSTO<span class="acid">PRINT</span>
+        CALC<span class="acid">PRO 3D</span>
       </div>
       <span class="dash-tag">Admin</span>
     </div>
@@ -359,7 +359,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'leads-custoprint-' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.download = 'leads-calcpro3d-' + new Date().toISOString().slice(0, 10) + '.csv';
     a.click();
     URL.revokeObjectURL(url);
   }
