@@ -93,61 +93,107 @@
   @media (max-width: 820px) { .nav-links { display: none; } }
 
   /* HERO */
-  .hero { padding: clamp(70px, 10vw, 140px) 0 0; position: relative; overflow: hidden; }
-  .hero-shade {
-    position: absolute; inset: 0; z-index: -1; pointer-events: none;
-    background: radial-gradient(30% 60% at 15% 0%, rgba(197,242,48,.06), transparent);
+  .hero { position: relative; padding: clamp(100px, 12vw, 160px) 0 0; overflow: hidden; }
+  .hero-radial {
+    position: absolute; top: 0; left: 0; z-index: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(ellipse 20% 80% at 50% -20%, rgba(197,242,48,.1), transparent);
   }
-  .hero-content { display: flex; flex-direction: column; gap: 20px; max-width: 640px; }
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 12px; width: fit-content;
-    padding: 5px 12px 5px 5px;
-    background: var(--panel); border: 1px solid var(--line-2);
-    font-family: var(--mono); font-size: 12px;
-    transition: border-color .15s, transform .12s;
-    animation: heroFadeUp .5s ease-out .5s both;
+  .retro-grid {
+    pointer-events: none; position: absolute; inset: 0;
+    overflow: hidden; perspective: 200px; opacity: 0.4;
   }
-  .hero-badge:hover { border-color: var(--acid-line); transform: translateY(-1px); }
-  .hero-badge-tag {
-    background: var(--panel-2); border: 1px solid var(--line);
-    padding: 3px 10px; font-size: 11px; font-weight: 600;
-    letter-spacing: 0.12em; text-transform: uppercase; color: var(--acid);
+  .retro-grid-plane { position: absolute; inset: 0; transform: rotateX(65deg); }
+  .retro-grid-lines {
+    background-image:
+      linear-gradient(to right, rgba(197,242,48,.1) 1px, transparent 0),
+      linear-gradient(to bottom, rgba(197,242,48,.1) 1px, transparent 0);
+    background-size: 50px 50px; background-repeat: repeat;
+    height: 300vh; width: 600vw; margin-left: -200%;
+    transform-origin: 100% 0 0;
+    animation: gridScroll 20s linear infinite;
   }
-  .hero-badge-text { color: var(--muted); font-size: 12px; letter-spacing: 0.02em; }
-  .hero-badge-sep { height: 20px; border-left: 1px solid var(--line-2); }
-  .hero-badge-arrow {
-    width: 12px; height: 12px; color: var(--muted);
-    transition: transform .15s ease-out;
+  .retro-grid-fade {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, var(--bg), transparent 90%);
   }
-  .hero-badge:hover .hero-badge-arrow { transform: translateX(3px); }
+  @keyframes gridScroll { from { transform: translateY(0); } to { transform: translateY(50px); } }
+
+  .hero-inner { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+  .hero-center {
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    gap: 20px; max-width: 720px; margin: 0 auto;
+  }
+  .hero-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 20px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--muted);
+    background: linear-gradient(to top right, rgba(197,242,48,.04), rgba(197,242,48,.1), transparent);
+    border: 2px solid rgba(255,255,255,.06); border-radius: 9999px;
+    transition: border-color .2s, color .2s;
+    animation: heroFadeUp .5s ease-out .3s both;
+  }
+  .hero-pill:hover { border-color: var(--acid-line); color: var(--ink); }
+  .hero-pill svg { width: 14px; height: 14px; transition: transform .2s; }
+  .hero-pill:hover svg { transform: translateX(3px); }
+
   .hero h1 {
-    font-size: clamp(36px, 5.5vw, 72px); margin: 0; line-height: 0.95; letter-spacing: -0.02em;
+    font-size: clamp(36px, 5.8vw, 76px); margin: 0;
+    background: linear-gradient(180deg, #FFF 0%, rgba(255,255,255,.55) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
     animation: heroFadeUp .5s ease-out .1s both;
+  }
+  .hero h1 .acid {
+    background: linear-gradient(to right, #C5F230, #9abf25);
+    -webkit-background-clip: text; background-clip: text;
   }
   .hero-desc {
     font-size: clamp(15px, 1.3vw, 18px); color: var(--muted);
-    max-width: 520px; margin: 0; line-height: 1.65; letter-spacing: 0.01em;
+    max-width: 540px; margin: 0 auto; line-height: 1.65;
     animation: heroFadeUp .5s ease-out .2s both;
   }
-  .hero-btns {
-    display: flex; gap: 12px; padding-top: 8px; flex-wrap: wrap;
-    animation: heroFadeUp .5s ease-out .3s both;
+  .hero-cta-wrap { padding-top: 8px; animation: heroFadeUp .5s ease-out .35s both; }
+  .cta-glow {
+    position: relative; display: inline-block;
+    overflow: hidden; border-radius: 9999px; padding: 1.5px;
   }
+  .cta-glow-spin {
+    position: absolute; inset: -1000%;
+    background: conic-gradient(from 90deg at 50% 50%, var(--acid) 0%, #3a5a00 50%, var(--acid) 100%);
+    animation: spinGlow 2s linear infinite;
+  }
+  @keyframes spinGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .cta-glow-inner {
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 9999px; background: var(--bg); position: relative;
+  }
+  .cta-glow-inner button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border-radius: 9999px; padding: 16px 36px;
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink); border: 1px solid rgba(197,242,48,.15);
+    background: linear-gradient(to top right, rgba(197,242,48,.04), rgba(197,242,48,.15), transparent);
+    cursor: pointer; transition: all .2s;
+  }
+  .cta-glow-inner button:hover {
+    background: linear-gradient(to top right, rgba(197,242,48,.1), rgba(197,242,48,.25), transparent);
+  }
+
   .hero-mockup-area {
-    position: relative; margin-top: clamp(32px, 5vw, 80px);
-    animation: heroFadeUp 1s ease-out .1s both;
-  }
-  .hero-mockup-glow {
-    position: absolute; inset: -80px -80px 0 -80px; z-index: -1;
-    background: radial-gradient(ellipse at center, rgba(197,242,48,.04), transparent, transparent);
-    border-radius: 50%; filter: blur(60px);
+    position: relative; margin-top: clamp(48px, 7vw, 100px);
+    animation: heroFadeUp 1s ease-out .2s both;
   }
   .hero-mockup {
     position: relative; overflow: hidden; border-radius: 12px;
     border: 1px solid var(--line-2); background: var(--panel);
-    padding: 8px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
-    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    padding: 8px; max-width: 1100px; margin: 0 auto;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
+    -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
   }
   .hero-mockup img {
     width: 100%; aspect-ratio: 16/9; object-fit: cover;
@@ -159,9 +205,7 @@
   }
   @media (max-width: 900px) {
     .wrap { padding: 0 16px; }
-  }
-  @media (max-width: 640px) {
-    .hero-mockup { margin-right: -140px; }
+    .hero-inner { padding: 0 16px; }
   }
 
   /* MODAL */
@@ -336,32 +380,33 @@
 
 <!-- HERO -->
 <header class="hero" id="top">
-  <div class="hero-shade" aria-hidden="true"></div>
-  <div class="wrap">
-    <div class="hero-content">
-      <a class="hero-badge" href="#como">
-        <span class="hero-badge-tag">Novo</span>
-        <span class="hero-badge-text">Agora com taxas de Shopee e Mercado Livre</span>
-        <span class="hero-badge-sep"></span>
-        <svg class="hero-badge-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  <div class="hero-radial" aria-hidden="true"></div>
+  <div class="retro-grid" aria-hidden="true">
+    <div class="retro-grid-plane">
+      <div class="retro-grid-lines"></div>
+    </div>
+    <div class="retro-grid-fade"></div>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-center">
+      <a class="hero-pill" href="#como">
+        Precificadora para impressao 3D
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
       </a>
       <h1 class="display">Precifique certo. <span class="acid">Lucre de verdade.</span></h1>
       <p class="hero-desc">Material, energia, depreciacao, mao de obra e a taxa de cada marketplace somados automaticamente. O preco certo de cada impressao, sem planilha e sem chute.</p>
-      <div class="hero-btns">
-        <button class="btn btn-dark cut" onclick="document.getElementById('como').scrollIntoView({behavior:'smooth'})">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-          Como funciona
-        </button>
-        <button class="btn btn-acid cut" onclick="openModal()">
-          Acessar calculadora
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
+      <div class="hero-cta-wrap">
+        <span class="cta-glow">
+          <span class="cta-glow-spin"></span>
+          <div class="cta-glow-inner">
+            <button onclick="openModal()">Acessar calculadora gratis</button>
+          </div>
+        </span>
       </div>
     </div>
   </div>
   <div class="hero-mockup-area">
-    <div class="hero-mockup-glow" aria-hidden="true"></div>
-    <div class="wrap">
+    <div class="hero-inner">
       <div class="hero-mockup">
         <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1920&q=80" alt="CalcPro 3D — painel da calculadora" width="1920" height="1080" loading="eager" />
       </div>
