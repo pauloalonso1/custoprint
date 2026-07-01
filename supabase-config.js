@@ -92,14 +92,34 @@ async function getLeads(search) {
   return data;
 }
 
-async function loginAdmin(email, password) {
+async function signUpEmail(email, password, nome, whatsapp) {
+  const sb = getSupabase();
+  const { data, error } = await sb.auth.signUp({
+    email,
+    password,
+    options: { data: { full_name: nome, whatsapp: whatsapp } }
+  });
+  if (error) throw error;
+  return data;
+}
+
+async function signInEmail(email, password) {
   const sb = getSupabase();
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) throw error;
   return data;
 }
 
-async function logoutAdmin() {
+async function signInGoogle(redirectTo) {
+  const sb = getSupabase();
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo }
+  });
+  if (error) throw error;
+}
+
+async function logoutUser() {
   const sb = getSupabase();
   await sb.auth.signOut({ scope: 'local' });
 }

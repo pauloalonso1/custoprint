@@ -128,8 +128,18 @@
     color: var(--muted); cursor: pointer; transition: color .15s; background: none; border: none; font-size: 20px;
   }
   .modal-close:hover { color: var(--ink); }
-  .modal-title { font-family: var(--display); font-size: 22px; text-transform: uppercase; margin: 0 0 6px; }
-  .modal-sub { font-size: 14px; color: var(--muted); margin: 0 0 28px; }
+  .modal-title { font-family: var(--display); font-size: 22px; text-transform: uppercase; margin: 0 0 24px; }
+  .modal-tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
+  .modal-tab {
+    flex: 1; padding: 12px 0; font-family: var(--mono); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-2);
+    background: none; border: none; border-bottom: 2px solid transparent;
+    cursor: pointer; transition: color .15s, border-color .15s; text-align: center;
+  }
+  .modal-tab.active { color: var(--acid); border-bottom-color: var(--acid); }
+  .modal-tab:hover:not(.active) { color: var(--ink); }
+  .modal-pane { display: none; }
+  .modal-pane.active { display: block; }
   .btn-google {
     width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px;
     padding: 14px 20px; font-family: var(--sans); font-weight: 600; font-size: 15px;
@@ -289,49 +299,85 @@
   </div>
 </header>
 
-<!-- MODAL CADASTRO -->
+<!-- MODAL AUTH -->
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3 class="modal-title">Acesse a calculadora <span class="acid">gratis</span></h3>
-    <p class="modal-sub">Crie sua conta em segundos.</p>
+    <h3 class="modal-title">Acesse a <span class="acid">calculadora</span></h3>
 
-    <button class="btn-google" onclick="signInGoogle()">
-      <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-      Continuar com Google
-    </button>
-
-    <div class="modal-divider">ou</div>
-
-    <div class="form-field">
-      <label class="form-label">Nome</label>
-      <input class="form-input" type="text" id="fNome" placeholder="Seu nome" autocomplete="name" />
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchTab('login')">Entrar</button>
+      <button class="modal-tab" onclick="switchTab('signup')">Criar conta</button>
     </div>
-    <div class="form-error" id="errNome">Informe seu nome</div>
 
-    <div class="form-field">
-      <label class="form-label">E-mail</label>
-      <input class="form-input" type="email" id="fEmail" placeholder="seu@email.com" autocomplete="email" />
+    <!-- TAB: ENTRAR -->
+    <div class="modal-pane active" id="paneLogin">
+      <button class="btn-google" onclick="handleGoogle()">
+        <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continuar com Google
+      </button>
+      <div class="modal-divider">ou</div>
+
+      <div class="form-field">
+        <label class="form-label">E-mail</label>
+        <input class="form-input" type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Senha</label>
+        <input class="form-input" type="password" id="loginPass" placeholder="Sua senha" autocomplete="current-password" />
+      </div>
+      <div class="form-error" id="errLogin">E-mail ou senha incorretos</div>
+
+      <button class="btn btn-acid btn-block cut form-cta" id="btnLogin" onclick="handleLogin()">
+        Entrar →
+      </button>
+      <div class="form-msg" id="loginMsg"></div>
     </div>
-    <div class="form-error" id="errEmail">Informe um e-mail valido</div>
 
-    <div class="form-field">
-      <label class="form-label">WhatsApp</label>
-      <input class="form-input" type="tel" id="fWhatsapp" placeholder="(11) 99999-9999" autocomplete="tel" />
+    <!-- TAB: CRIAR CONTA -->
+    <div class="modal-pane" id="paneSignup">
+      <button class="btn-google" onclick="handleGoogle()">
+        <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continuar com Google
+      </button>
+      <div class="modal-divider">ou</div>
+
+      <div class="form-field">
+        <label class="form-label">Nome</label>
+        <input class="form-input" type="text" id="fNome" placeholder="Seu nome" autocomplete="name" />
+      </div>
+      <div class="form-error" id="errNome">Informe seu nome</div>
+
+      <div class="form-field">
+        <label class="form-label">E-mail</label>
+        <input class="form-input" type="email" id="fEmail" placeholder="seu@email.com" autocomplete="email" />
+      </div>
+      <div class="form-error" id="errEmail">Informe um e-mail valido</div>
+
+      <div class="form-field">
+        <label class="form-label">Senha</label>
+        <input class="form-input" type="password" id="fPass" placeholder="Minimo 6 caracteres" autocomplete="new-password" />
+      </div>
+      <div class="form-error" id="errPass">A senha deve ter no minimo 6 caracteres</div>
+
+      <div class="form-field">
+        <label class="form-label">WhatsApp</label>
+        <input class="form-input" type="tel" id="fWhatsapp" placeholder="(11) 99999-9999" autocomplete="tel" />
+      </div>
+      <div class="form-error" id="errWhatsapp">Informe seu WhatsApp</div>
+
+      <label class="form-consent">
+        <input type="checkbox" id="fConsent" />
+        <span class="form-consent-text">Li e concordo com a <a href="privacidade.html" target="_blank">Politica de Privacidade</a>. Autorizo o uso dos meus dados para acesso a calculadora e comunicacoes sobre o CalcPro 3D.</span>
+      </label>
+      <div class="form-error" id="errConsent">Voce precisa concordar para continuar</div>
+
+      <button class="btn btn-acid btn-block cut form-cta" id="btnSignup" onclick="handleSignup()">
+        Criar conta e acessar →
+      </button>
+      <p class="form-fine">Seus dados estao protegidos pela LGPD</p>
+      <div class="form-msg" id="signupMsg"></div>
     </div>
-    <div class="form-error" id="errWhatsapp">Informe seu WhatsApp</div>
-
-    <label class="form-consent">
-      <input type="checkbox" id="fConsent" />
-      <span class="form-consent-text">Li e concordo com a <a href="privacidade.html" target="_blank">Politica de Privacidade</a>. Autorizo o uso dos meus dados para acesso a calculadora e comunicacoes sobre o CalcPro 3D.</span>
-    </label>
-    <div class="form-error" id="errConsent">Voce precisa concordar para continuar</div>
-
-    <button class="btn btn-acid btn-block cut form-cta" id="btnSubmit" onclick="submitLead()">
-      Criar conta e acessar →
-    </button>
-    <p class="form-fine">Seus dados estao protegidos pela LGPD</p>
-    <div class="form-msg" id="formMsg"></div>
   </div>
 </div>
 
@@ -466,77 +512,98 @@
   });
 
   // Modal
-  function openModal() { document.getElementById('modalOverlay').classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function openModal(tab) {
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (tab) switchTab(tab);
+  }
   function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow = ''; }
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  // Google sign-in
-  async function signInGoogle() {
-    try {
-      const sb = getSupabase();
-      const { error } = await sb.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin + '/calculadora.html' }
-      });
-      if (error) throw error;
-    } catch (err) {
-      const msg = document.getElementById('formMsg');
-      msg.className = 'form-msg show fail';
-      msg.style.display = 'block';
-      msg.textContent = 'Erro ao conectar com Google: ' + (err.message || 'tente novamente');
+  // Tabs
+  function switchTab(tab) {
+    document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.modal-pane').forEach(p => p.classList.remove('active'));
+    if (tab === 'signup') {
+      document.querySelectorAll('.modal-tab')[1].classList.add('active');
+      document.getElementById('paneSignup').classList.add('active');
+    } else {
+      document.querySelectorAll('.modal-tab')[0].classList.add('active');
+      document.getElementById('paneLogin').classList.add('active');
     }
+    clearErrors();
   }
 
-  // WhatsApp mask
-  function maskPhone(input) {
-    input.addEventListener('input', function () {
-      let v = this.value.replace(/\D/g, '').slice(0, 11);
-      if (v.length > 6) v = '(' + v.slice(0,2) + ') ' + v.slice(2,7) + '-' + v.slice(7);
-      else if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
-      else if (v.length > 0) v = '(' + v;
-      this.value = v;
-    });
-  }
-  maskPhone(document.getElementById('fWhatsapp'));
-
-  // check if already registered (localStorage or Supabase session)
-  (async function checkExisting() {
-    const lead = localStorage.getItem('nm3d_lead');
-    if (lead) {
-      try {
-        const d = JSON.parse(lead);
-        if (d.nome && d.email) { window.location.href = 'calculadora.html'; return; }
-      } catch {}
-    }
-    try {
-      const session = await getSession();
-      if (session?.user) {
-        const u = session.user;
-        localStorage.setItem('nm3d_lead', JSON.stringify({
-          nome: u.user_metadata?.full_name || u.email.split('@')[0],
-          email: u.email,
-          whatsapp: ''
-        }));
-        window.location.href = 'calculadora.html';
-      }
-    } catch {}
-  })();
-
-  // submit manual form
-  async function submitLead() {
-    const nome = document.getElementById('fNome').value.trim();
-    const email = document.getElementById('fEmail').value.trim();
-    const whatsapp = document.getElementById('fWhatsapp').value.trim();
-    const btn = document.getElementById('btnSubmit');
-    const msg = document.getElementById('formMsg');
-    const consent = document.getElementById('fConsent');
-
-    // clear errors
+  function clearErrors() {
     document.querySelectorAll('.form-error').forEach(e => e.classList.remove('show'));
     document.querySelectorAll('.form-input').forEach(e => e.classList.remove('error'));
     document.querySelectorAll('.form-consent input').forEach(e => e.classList.remove('error'));
+    document.querySelectorAll('.form-msg').forEach(e => { e.className = 'form-msg'; e.style.display = 'none'; });
+  }
 
-    // validate
+  function showMsg(id, text, type) {
+    const msg = document.getElementById(id);
+    msg.className = 'form-msg show ' + type;
+    msg.style.display = 'block';
+    msg.textContent = text;
+  }
+
+  // Google
+  async function handleGoogle() {
+    try {
+      await signInGoogle(window.location.origin + '/calculadora.html');
+    } catch (err) {
+      showMsg('loginMsg', 'Erro ao conectar com Google: ' + (err.message || 'tente novamente'), 'fail');
+    }
+  }
+
+  // Login
+  async function handleLogin() {
+    clearErrors();
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    const btn = document.getElementById('btnLogin');
+
+    let valid = true;
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      document.getElementById('loginEmail').classList.add('error');
+      valid = false;
+    }
+    if (!pass) {
+      document.getElementById('loginPass').classList.add('error');
+      valid = false;
+    }
+    if (!valid) { showMsg('loginMsg', 'Preencha e-mail e senha', 'fail'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Entrando...';
+
+    try {
+      const { user } = await signInEmail(email, pass);
+      localStorage.setItem('nm3d_lead', JSON.stringify({
+        nome: user.user_metadata?.full_name || email.split('@')[0],
+        email: user.email,
+        whatsapp: user.user_metadata?.whatsapp || ''
+      }));
+      window.location.href = 'calculadora.html';
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = 'Entrar →';
+      const msg = err.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : (err.message || 'Erro ao entrar');
+      showMsg('loginMsg', msg, 'fail');
+    }
+  }
+
+  // Signup
+  async function handleSignup() {
+    clearErrors();
+    const nome = document.getElementById('fNome').value.trim();
+    const email = document.getElementById('fEmail').value.trim();
+    const pass = document.getElementById('fPass').value;
+    const whatsapp = document.getElementById('fWhatsapp').value.trim();
+    const consent = document.getElementById('fConsent');
+    const btn = document.getElementById('btnSignup');
+
     let valid = true;
     if (!nome || nome.length < 2) {
       document.getElementById('errNome').classList.add('show');
@@ -546,6 +613,11 @@
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       document.getElementById('errEmail').classList.add('show');
       document.getElementById('fEmail').classList.add('error');
+      valid = false;
+    }
+    if (!pass || pass.length < 6) {
+      document.getElementById('errPass').classList.add('show');
+      document.getElementById('fPass').classList.add('error');
       valid = false;
     }
     const digits = whatsapp.replace(/\D/g, '');
@@ -561,35 +633,54 @@
     }
     if (!valid) return;
 
-    // rate limit: 1 envio a cada 30s
-    const lastSubmit = parseInt(localStorage.getItem('nm3d_last_submit') || '0', 10);
-    const elapsed = Date.now() - lastSubmit;
-    if (elapsed < 30000) {
-      msg.className = 'form-msg show fail';
-      msg.style.display = 'block';
-      msg.textContent = 'Aguarde ' + Math.ceil((30000 - elapsed) / 1000) + 's antes de tentar novamente.';
-      return;
-    }
-
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-sm"></span> Enviando...';
-    msg.className = 'form-msg';
-    msg.style.display = 'none';
+    btn.innerHTML = '<span class="spinner-sm"></span> Criando conta...';
 
     try {
-      localStorage.setItem('nm3d_last_submit', String(Date.now()));
+      const { user } = await signUpEmail(email, pass, nome, whatsapp);
       await saveLead(nome, email, whatsapp, new Date().toISOString());
       localStorage.setItem('nm3d_lead', JSON.stringify({ nome, email, whatsapp }));
       window.location.href = 'calculadora.html';
     } catch (err) {
-      console.error('Erro Supabase:', err);
       btn.disabled = false;
       btn.innerHTML = 'Criar conta e acessar →';
-      msg.className = 'form-msg show fail';
-      msg.style.display = 'block';
-      msg.textContent = 'Erro ao salvar: ' + (err.message || 'tente novamente');
+      let msg = err.message || 'Erro ao criar conta';
+      if (msg.includes('already registered')) msg = 'Este e-mail ja esta cadastrado. Tente entrar.';
+      showMsg('signupMsg', msg, 'fail');
     }
   }
+
+  // WhatsApp mask
+  function maskPhone(input) {
+    input.addEventListener('input', function () {
+      let v = this.value.replace(/\D/g, '').slice(0, 11);
+      if (v.length > 6) v = '(' + v.slice(0,2) + ') ' + v.slice(2,7) + '-' + v.slice(7);
+      else if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
+      else if (v.length > 0) v = '(' + v;
+      this.value = v;
+    });
+  }
+  maskPhone(document.getElementById('fWhatsapp'));
+
+  // Enter key submits forms
+  document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+  document.getElementById('fPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleSignup(); });
+
+  // check if already logged in
+  (async function checkExisting() {
+    try {
+      const session = await getSession();
+      if (session?.user) {
+        const u = session.user;
+        localStorage.setItem('nm3d_lead', JSON.stringify({
+          nome: u.user_metadata?.full_name || u.email.split('@')[0],
+          email: u.email,
+          whatsapp: u.user_metadata?.whatsapp || ''
+        }));
+        window.location.href = 'calculadora.html';
+      }
+    } catch {}
+  })();
 </script>
 </body>
 </html>

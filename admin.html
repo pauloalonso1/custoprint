@@ -266,7 +266,7 @@
     errEl.classList.remove('show');
 
     try {
-      await loginAdmin(email, pass);
+      await signInEmail(email, pass);
       showDash();
       loadLeads();
     } catch (err) {
@@ -278,7 +278,7 @@
   }
 
   async function doLogout() {
-    await logoutAdmin();
+    await logoutUser();
     window.location.reload();
   }
 
