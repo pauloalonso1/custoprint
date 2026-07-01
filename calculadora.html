@@ -640,9 +640,32 @@
     { power: 350, cost: 4000, life: 6000 },  // 17 Voron 2.4 (Kit)
   ];
 
+  // Taxas atualizadas — março 2026
   const MKS = [
-    { id: 'shopee', label: 'Shopee', comm: 0.20, fixed: 4.00, color: 'var(--mk-shopee)', note: '~20% comissao + R$4 taxa fixa' },
-    { id: 'ml', label: 'Mercado Livre', comm: 0.13, fixed: 6.00, color: 'var(--mk-ml)', note: '~13% comissao + R$6 fixo por unidade' },
+    {
+      id: 'shopee', label: 'Shopee', color: 'var(--mk-shopee)',
+      tiers: [
+        { max: 7.99,   comm: 0.50, fixed: 0   },
+        { max: 79.99,  comm: 0.20, fixed: 4   },
+        { max: 99.99,  comm: 0.14, fixed: 16  },
+        { max: 199.99, comm: 0.14, fixed: 20  },
+        { max: Infinity, comm: 0.14, fixed: 26 },
+      ],
+      noteFor(p) {
+        const t = this.tiers.find(t => p <= t.max);
+        return `${(t.comm*100).toFixed(0)}% comissao + R$${t.fixed.toFixed(0)} taxa fixa (faixa ate R$${t.max === Infinity ? '200+' : t.max.toFixed(0)})`;
+      }
+    },
+    {
+      id: 'ml', label: 'Mercado Livre', color: 'var(--mk-ml)',
+      tiers: [
+        { max: 79,     comm: 0.14, fixed: 6.50 },
+        { max: Infinity, comm: 0.14, fixed: 0   },
+      ],
+      noteFor(p) {
+        return p <= 79 ? '14% comissao + R$6,50 custo fixo (Classico < R$79)' : '14% comissao — sem custo fixo (Classico ≥ R$79)';
+      }
+    },
   ];
 
   const BRL = v => 'R$ ' + (isFinite(v) ? v : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -703,14 +726,25 @@
     document.getElementById('cTotal').textContent = BRL(total);
     document.getElementById('marginVal').textContent = margin + '%';
 
+    function mkCalcPrice(mk, cost, marginPct) {
+      const target = cost * (1 + marginPct / 100);
+      for (const tier of mk.tiers) {
+        const price = (target + tier.fixed) / Math.max(0.01, 1 - tier.comm);
+        if (price <= tier.max || tier.max === Infinity) {
+          const fees = tier.comm * price + tier.fixed;
+          return { price, fees, tier };
+        }
+      }
+      const last = mk.tiers[mk.tiers.length - 1];
+      const price = (target + last.fixed) / Math.max(0.01, 1 - last.comm);
+      return { price, fees: last.comm * price + last.fixed, tier: last };
+    }
+
     let html = '';
     let bestPrice = Infinity;
     let bestId = '';
     const results = MKS.map(mk => {
-      const targetProfit = total * (margin / 100);
-      const denom = Math.max(0.01, 1 - mk.comm);
-      const price = (total + targetProfit + mk.fixed) / denom;
-      const fees = mk.comm * price + mk.fixed;
+      const { price, fees } = mkCalcPrice(mk, total, margin);
       const profit = price - total - fees;
       const marginPct = price > 0 ? (profit / price) * 100 : 0;
       if (price < bestPrice) { bestPrice = price; bestId = mk.id; }
@@ -719,6 +753,7 @@
 
     results.forEach(r => {
       const best = r.mk.id === bestId;
+      const note = r.mk.noteFor(r.price);
       html += `
         <div class="mk-card" style="--mk-color:${r.mk.color}; ${best ? 'border-color:var(--acid); box-shadow: 0 0 0 1px var(--acid-line);' : ''}">
           <div class="mk-top">
@@ -730,7 +765,7 @@
             <div><div class="mk-stat-k">Lucro</div><div class="mk-stat-v profit">${BRL(r.profit)}</div></div>
             <div><div class="mk-stat-k">Margem</div><div class="mk-stat-v">${PCT(r.marginPct)}</div></div>
           </div>
-          <p class="mk-note">${r.mk.note}</p>
+          <p class="mk-note">${note}</p>
         </div>`;
     });
     document.getElementById('mkResults').innerHTML = html;
