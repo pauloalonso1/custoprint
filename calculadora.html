@@ -30,7 +30,7 @@
     --sans: "Archivo", system-ui, -apple-system, sans-serif;
     --mono: "Geist Mono", ui-monospace, monospace;
     --cut: 16px;
-    --cost-material: #3b82f6; --cost-energy: #f5b21f; --cost-deprec: #a855f7; --cost-fail: #f0454d; --cost-labor: #22d3ee;
+    --cost-material: #3b82f6; --cost-energy: #f5b21f; --cost-deprec: #a855f7; --cost-fail: #f0454d; --cost-labor: #22d3ee; --cost-ship: #f97316;
     --mk-shopee: #EE4D2D; --mk-ml: #FFE600;
   }
   * { box-sizing: border-box; }
@@ -331,6 +331,31 @@
         </div>
       </div>
 
+      <!-- EMBALAGEM E ENVIO -->
+      <div class="panel" style="margin-top: 20px;">
+        <div class="panel-head">
+          <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+          <h2 class="panel-title">Embalagem e <span class="acid">Envio</span></h2>
+        </div>
+        <div class="input-row">
+          <div class="field">
+            <label class="field-label">Embalagem / unidade</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="packCost" value="0" min="0" step="0.50" oninput="calc()" />
+              <span class="suf">R$</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Frete / unidade</label>
+            <div class="input-suffix">
+              <input class="input" type="number" id="shipCost" value="0" min="0" step="0.50" oninput="calc()" />
+              <span class="suf">R$</span>
+            </div>
+          </div>
+        </div>
+        <p class="field-hint">Caixa, plastico bolha, etiqueta, fita e custo de envio por unidade.</p>
+      </div>
+
       <!-- MARGEM DE LUCRO -->
       <div class="panel" style="margin-top: 20px;">
         <div class="panel-head">
@@ -361,6 +386,7 @@
           <li><span><span class="cost-dot" style="background:var(--cost-energy)"></span>Energia</span><span class="cost-val" id="cEnergy">R$ 0,00</span></li>
           <li><span><span class="cost-dot" style="background:var(--cost-deprec)"></span>Depreciacao</span><span class="cost-val" id="cDeprec">R$ 0,00</span></li>
           <li><span><span class="cost-dot" style="background:var(--cost-labor)"></span>Mao de obra</span><span class="cost-val" id="cLabor">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-ship)"></span>Embalagem + Envio</span><span class="cost-val" id="cShip">R$ 0,00</span></li>
           <li><span><span class="cost-dot" style="background:var(--cost-fail)"></span><span id="cFailLabel">Falha (5%)</span></span><span class="cost-val" id="cFail">R$ 0,00</span></li>
         </ul>
 
@@ -502,13 +528,16 @@
     const failPct = +document.getElementById('failRate').value || 0;
     const laborMin = +document.getElementById('laborMin').value || 0;
     const laborRate = +document.getElementById('laborRate').value || 0;
+    const packCost = +document.getElementById('packCost').value || 0;
+    const shipCost = +document.getElementById('shipCost').value || 0;
 
     const printHours = h + m / 60;
     const material = (fp / 1000) * g;
     const energy = (power / 1000) * printHours * tariff;
     const deprec = (pCost / Math.max(1, pLife)) * printHours;
     const labor = (laborMin / 60) * laborRate;
-    const subtotal = material + energy + deprec + labor;
+    const shipping = packCost + shipCost;
+    const subtotal = material + energy + deprec + labor + shipping;
     const fail = subtotal * (failPct / 100);
     const total = subtotal + fail;
 
@@ -516,6 +545,7 @@
     document.getElementById('cEnergy').textContent = BRL(energy);
     document.getElementById('cDeprec').textContent = BRL(deprec);
     document.getElementById('cLabor').textContent = BRL(labor);
+    document.getElementById('cShip').textContent = BRL(shipping);
     document.getElementById('cFailLabel').textContent = 'Falha (' + failPct + '%)';
     document.getElementById('cFail').textContent = BRL(fail);
     document.getElementById('cTotal').textContent = BRL(total);
@@ -558,7 +588,7 @@
       filamentPrice: fp, grams: g, hours: h, minutes: m, margin,
       printer: document.getElementById('printer').value,
       printerPower: power, tariff, printerCost: pCost, printerLife: pLife,
-      failRate: failPct, laborMin, laborRate
+      failRate: failPct, laborMin, laborRate, packCost, shipCost
     }));
   }
 
@@ -579,6 +609,8 @@
       if (s.failRate !== undefined) document.getElementById('failRate').value = s.failRate;
       if (s.laborMin !== undefined) document.getElementById('laborMin').value = s.laborMin;
       if (s.laborRate !== undefined) document.getElementById('laborRate').value = s.laborRate;
+      if (s.packCost !== undefined) document.getElementById('packCost').value = s.packCost;
+      if (s.shipCost !== undefined) document.getElementById('shipCost').value = s.shipCost;
     } catch {}
     calc();
   })();
