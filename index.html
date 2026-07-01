@@ -589,7 +589,9 @@
     } catch (err) {
       btn.disabled = false;
       btn.innerHTML = 'Entrar →';
-      const msg = err.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : (err.message || 'Erro ao entrar');
+      let msg = err.message || 'Erro ao entrar';
+      if (msg === 'Invalid login credentials') msg = 'E-mail ou senha incorretos';
+      else if (msg === 'Email not confirmed') msg = 'E-mail ainda não confirmado. Verifique sua caixa de entrada e spam.';
       showMsg('loginMsg', msg, 'fail');
     }
   }
@@ -639,6 +641,18 @@
     try {
       const { user } = await signUpEmail(email, pass, nome, whatsapp);
       await saveLead(nome, email, whatsapp, new Date().toISOString());
+      if (user?.identities?.length === 0) {
+        btn.disabled = false;
+        btn.innerHTML = 'Criar conta e acessar →';
+        showMsg('signupMsg', 'Este e-mail já está cadastrado. Tente entrar.', 'fail');
+        return;
+      }
+      if (user && !user.confirmed_at && !user.email_confirmed_at) {
+        btn.disabled = false;
+        btn.innerHTML = 'Criar conta e acessar →';
+        showMsg('signupMsg', 'Conta criada! Verifique seu e-mail para confirmar antes de entrar.', 'fail');
+        return;
+      }
       localStorage.setItem('nm3d_lead', JSON.stringify({ nome, email, whatsapp }));
       window.location.href = 'calculadora.html';
     } catch (err) {
