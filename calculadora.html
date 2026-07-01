@@ -330,6 +330,7 @@
 
   async function logout() {
     localStorage.removeItem('nm3d_lead');
+    localStorage.removeItem('sb-drcerqugqdzjxxilrdab-auth-token');
     try { await logoutAdmin(); } catch {}
     window.location.href = 'index.html';
   }

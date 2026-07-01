@@ -101,7 +101,7 @@ async function loginAdmin(email, password) {
 
 async function logoutAdmin() {
   const sb = getSupabase();
-  await sb.auth.signOut();
+  await sb.auth.signOut({ scope: 'local' });
 }
 
 async function getSession() {
