@@ -224,7 +224,7 @@ select.input { appearance: none; cursor: pointer; background-image: url("data:im
 .pro-lock svg { width: 14px; height: 14px; color: var(--acid); flex-shrink: 0; }
 
 .pro-wall { background: var(--panel); border: 1px solid var(--line); padding: 56px 32px; text-align: center; max-width: 620px; margin: 0 auto; }
-.pro-wall .pw-icon { width: 52px; height: 52px; margin: 0 auto 20px; background: var(--acid-dim); border: 1px solid var(--acid-line); color: var(--acid); display: grid; place-items: center; }
+.pro-wall .pw-icon { width: 52px; height: 52px; margin: 0 auto 20px; color: var(--acid); display: grid; place-items: center; }
 .pro-wall h2 { font-family: var(--display); font-size: 22px; text-transform: uppercase; margin: 0 0 10px; }
 .pro-wall p { font-size: 14px; color: var(--muted); margin: 0 auto 24px; max-width: 400px; line-height: 1.6; }
 

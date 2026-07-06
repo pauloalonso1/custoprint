@@ -80,24 +80,24 @@
   function render(plan) {
     const isPro = plan === "pro";
     document.getElementById("plansGrid").innerHTML =
-      '<div class="plan-card cut">' +
+      '<div class="plan-card">' +
         '<h2 class="plan-name">Gratuito</h2>' +
         '<p class="plan-desc">Para precificar as primeiras vendas.</p>' +
         '<div class="plan-price">R$ 0</div>' +
         feats(FREE_FEATS) +
         (isPro
           ? '<button class="btn btn-block" disabled>Plano anterior</button>'
-          : '<a class="btn btn-block cut" href="calculadora.html">Seu plano atual — abrir calculadora</a>') +
+          : '<a class="btn btn-block" href="calculadora.html">Seu plano atual — abrir calculadora</a>') +
       "</div>" +
-      '<div class="plan-card featured cut">' +
+      '<div class="plan-card featured">' +
         '<span class="popular">Em breve</span>' +
         '<h2 class="plan-name">Pro</h2>' +
         '<p class="plan-desc">Para quem vive de impressão 3D: clientes, orçamentos e todos os canais.</p>' +
         '<div class="plan-price">Em breve <small>preço a anunciar</small></div>' +
         feats(PRO_FEATS) +
         (isPro
-          ? '<button class="btn btn-acid btn-block cut" disabled>Plano ativo ✓ (administrador)</button>'
-          : '<button class="btn btn-block cut" disabled title="O plano Pro ainda não está disponível">Disponível em breve</button>') +
+          ? '<button class="btn btn-acid btn-block" disabled>Plano ativo ✓ (administrador)</button>'
+          : '<button class="btn btn-block" disabled title="O plano Pro ainda não está disponível">Disponível em breve</button>') +
       "</div>";
   }
 

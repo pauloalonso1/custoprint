@@ -318,12 +318,12 @@ function renderAppChrome(active, lead, plan) {
 /** HTML de parede Pro para páginas inteiras. */
 function proWallHTML(title, desc) {
   return (
-    '<div class="pro-wall cut">' +
+    '<div class="pro-wall">' +
       '<div class="pw-icon">' + LOCK_SVG + "</div>" +
       "<h2>" + title + ' <span class="tag-pro">Pro</span></h2>' +
       "<p>" + desc + "</p>" +
       '<p style="font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--acid);margin:0 0 16px;">Em breve</p>' +
-      '<a class="btn cut" href="planos.html">Ver o que vem no Pro</a>' +
+      '<a class="btn" href="planos.html">Ver o que vem no Pro</a>' +
     "</div>"
   );
 }
