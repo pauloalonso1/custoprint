@@ -13,7 +13,7 @@
   .plans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 860px; margin: 0 auto; align-items: stretch; }
   @media (max-width: 720px) { .plans-grid { grid-template-columns: 1fr; } }
   .plan-card { background: var(--panel); border: 1px solid var(--line); padding: 32px 30px; display: flex; flex-direction: column; }
-  .plan-card.featured { border-color: var(--acid-line); background: linear-gradient(180deg, rgba(197,242,48,.07), transparent 55%), var(--panel); position: relative; }
+  .plan-card.featured { border-color: var(--acid-line); background: linear-gradient(180deg, rgba(197,242,48,.07), transparent 55%), var(--panel); position: relative; padding-top: 44px; }
   .plan-name { font-family: var(--display); font-size: 18px; text-transform: uppercase; margin: 0 0 4px; }
   .plan-price { font-family: var(--display); font-size: 36px; margin: 12px 0 2px; }
   .plan-price small { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: none; letter-spacing: 0; }
@@ -23,7 +23,7 @@
   .plan-feats li svg { width: 15px; height: 15px; color: var(--acid); flex-shrink: 0; margin-top: 3px; }
   .plan-feats li.off { color: var(--muted-2); }
   .plan-feats li.off svg { color: var(--muted-2); }
-  .popular { position: absolute; top: -11px; left: 30px; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; background: var(--acid); color: #0A0E00; padding: 4px 12px; }
+  .popular { position: absolute; top: 0; left: 30px; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; background: var(--acid); color: #0A0E00; padding: 4px 12px; }
   .plans-note { text-align: center; font-size: 12px; color: var(--muted-2); margin-top: 22px; }
 </style>
 </head>
