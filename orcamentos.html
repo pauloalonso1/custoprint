@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CalcPro 3D — Orçamentos</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="app.css" />
+<style>
+  .item-row { display: grid; grid-template-columns: 1fr 84px 120px 120px 40px; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .item-row .line-total { font-family: var(--mono); font-size: 13px; text-align: right; color: var(--muted); }
+  .item-head { display: grid; grid-template-columns: 1fr 84px 120px 120px 40px; gap: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-2); margin-bottom: 8px; }
+  @media (max-width: 720px) {
+    .item-row, .item-head { grid-template-columns: 1fr 64px 92px 92px 32px; gap: 6px; }
+  }
+  .totals { margin-top: 18px; border-top: 1px solid var(--line-2); padding-top: 14px; max-width: 340px; margin-left: auto; }
+  .totals .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; color: var(--muted); }
+  .totals .row .mono { color: var(--ink); }
+  .totals .grand { border-top: 1px solid var(--line-2); margin-top: 8px; padding-top: 10px; }
+  .totals .grand span:first-child { font-family: var(--display); text-transform: uppercase; font-size: 14px; color: var(--ink); }
+  .totals .grand .mono { font-family: var(--display); font-size: 24px; color: var(--acid); }
+  .builder-hide { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="appChrome"></div>
+  <div id="pageBody"></div>
+
+  <!-- BUILDER -->
+  <div id="builder" class="builder-hide">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" id="builderTitle">Novo <span class="acid">Orçamento</span></h1>
+        <p class="page-sub">Monte os itens, aplique desconto e baixe o PDF com a sua logo.</p>
+      </div>
+      <button class="btn cut" onclick="closeBuilder()">← Voltar para a lista</button>
+    </div>
+
+    <div class="body-grid">
+      <div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-head-left"><h2 class="panel-title">Cliente</h2></div></div>
+          <div class="field">
+            <label class="field-label" for="qClient">Cliente *</label>
+            <select class="input" id="qClient"></select>
+            <p class="field-hint">Não achou? <a href="clientes.html" style="color:var(--acid);text-decoration:underline;">Cadastre em Clientes</a>.</p>
+          </div>
+          <div class="input-row">
+            <div class="field"><label class="field-label" for="qValidity">Validade</label>
+              <div class="input-suffix"><input class="input" type="number" id="qValidity" value="7" min="1" step="1" oninput="renderTotals()" /><span class="suf">dias</span></div>
+            </div>
+            <div class="field"><label class="field-label" for="qShipping">Frete cobrado</label>
+              <div class="input-suffix"><input class="input" type="number" id="qShipping" value="0" min="0" step="0.5" oninput="renderTotals()" /><span class="suf">R$</span></div>
+            </div>
+          </div>
+          <div class="field"><label class="field-label" for="qDiscount">Desconto</label>
+            <div class="input-suffix"><input class="input" type="number" id="qDiscount" value="0" min="0" max="100" step="1" oninput="renderTotals()" /><span class="suf">%</span></div>
+          </div>
+          <div class="field"><label class="field-label" for="qNotes">Observações (aparecem no PDF)</label>
+            <textarea class="input" id="qNotes" rows="3" placeholder="Prazo de produção, condições de pagamento..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-head-left"><h2 class="panel-title">Itens</h2></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <select class="input" id="pieceSelect" style="width:auto;padding:7px 34px 7px 12px;font-size:12px;"></select>
+              <button class="btn btn-sm" onclick="addFromPiece()">+ Peça salva</button>
+              <button class="btn btn-sm" onclick="addItem()">+ Item em branco</button>
+            </div>
+          </div>
+          <div class="item-head"><span>Descrição</span><span style="text-align:right;">Qtd</span><span style="text-align:right;">Unitário</span><span style="text-align:right;">Subtotal</span><span></span></div>
+          <div id="itemsBody"></div>
+          <div class="totals">
+            <div class="row"><span>Subtotal</span><span class="mono tnum" id="tSubtotal">R$ 0,00</span></div>
+            <div class="row" id="tDiscountRow" style="display:none;"><span id="tDiscountLabel">Desconto</span><span class="mono tnum" id="tDiscount">- R$ 0,00</span></div>
+            <div class="row" id="tShippingRow" style="display:none;"><span>Frete</span><span class="mono tnum" id="tShipping">R$ 0,00</span></div>
+            <div class="row grand"><span>Total</span><span class="mono tnum" id="tTotal">R$ 0,00</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-acid cut" style="flex:1;" onclick="saveCurrentQuote(true)">Salvar e baixar PDF</button>
+            <button class="btn" onclick="saveCurrentQuote(false)">Salvar</button>
+          </div>
+          <p class="field-hint" style="margin-top:12px;" id="logoHint"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-foot"><span>CalcPro 3D · dados salvos no navegador</span></footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="app-core.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+<script>
+  const STATUS_ORDER = ["rascunho", "enviado", "aprovado", "recusado"];
+  const STATUS_LABEL = { rascunho: "Rascunho", enviado: "Enviado", aprovado: "Aprovado", recusado: "Recusado" };
+  let items = [];
+  let editingId = null;
+
+  /* ============ Lista ============ */
+  function renderList() {
+    document.getElementById("builder").classList.add("builder-hide");
+    const body = document.getElementById("pageBody");
+    body.style.display = "";
+    const quotes = getQuotes();
+    const clients = getClients();
+    const clientName = (id) => clients.find((c) => c.id === id)?.name || "Cliente removido";
+
+    let html =
+      '<div class="page-head"><div>' +
+      '<h1 class="page-title">Orçamentos</h1>' +
+      '<p class="page-sub">' + quotes.length + " orçamento(s)</p></div>" +
+      '<button class="btn btn-acid cut" onclick="openBuilder()">Novo orçamento</button></div>';
+
+    if (quotes.length === 0) {
+      html += '<div class="panel"><div class="empty">' +
+        "<h3>Nenhum orçamento criado</h3>" +
+        "<p>Escolha o cliente, adicione as peças e baixe o PDF pronto para enviar — com a logo da sua loja.</p>" +
+        '<button class="btn btn-acid cut" onclick="openBuilder()">Criar orçamento</button></div></div>';
+    } else {
+      html += quotes.map((q) => {
+        const t = quoteTotals(q);
+        return (
+          '<div class="panel" style="padding:20px 24px;margin-top:12px;">' +
+            '<div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:center;">' +
+              '<div style="min-width:0;">' +
+                '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
+                  '<span class="rec-title">Nº ' + String(q.number).padStart(4, "0") + "</span>" +
+                  '<button class="status-pill status-' + q.status + '" title="Clique para mudar o status" onclick="cycleStatus(\'' + q.id + '\')">' + STATUS_LABEL[q.status] + "</button>" +
+                "</div>" +
+                '<div class="rec-meta">' + esc(clientName(q.clientId)) + " · " + q.items.length + " item(ns) · " + DATE_BR(q.createdAt) + "</div>" +
+              "</div>" +
+              '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">' +
+                '<span class="rec-value tnum">' + BRL(t.total) + "</span>" +
+                '<div class="rec-actions" style="margin:0;">' +
+                  '<button class="btn btn-sm btn-acid" onclick="pdfQuote(\'' + q.id + '\')">Baixar PDF</button>' +
+                  '<button class="btn btn-sm" onclick="openBuilder(\'' + q.id + '\')">Editar</button>' +
+                  '<button class="btn btn-sm btn-ghost" onclick="delQuote(\'' + q.id + "'," + q.number + ')">Excluir</button>' +
+                "</div>" +
+              "</div>" +
+            "</div>" +
+          "</div>"
+        );
+      }).join("");
+    }
+    body.innerHTML = html;
+  }
+
+  function cycleStatus(id) {
+    const q = getQuotes().find((x) => x.id === id);
+    if (!q) return;
+    const next = STATUS_ORDER[(STATUS_ORDER.indexOf(q.status) + 1) % STATUS_ORDER.length];
+    saveQuote({ status: next }, id);
+    renderList();
+  }
+  function delQuote(id, number) {
+    if (confirm("Excluir o orçamento nº " + String(number).padStart(4, "0") + "?")) { deleteQuote(id); renderList(); }
+  }
+
+  /* ============ Builder ============ */
+  function openBuilder(id) {
+    editingId = id || null;
+    const q = id ? getQuotes().find((x) => x.id === id) : null;
+    items = q ? q.items.map((it) => ({ ...it })) : [];
+
+    document.getElementById("pageBody").style.display = "none";
+    document.getElementById("builder").classList.remove("builder-hide");
+    document.getElementById("builderTitle").innerHTML = q
+      ? 'Orçamento <span class="acid">Nº ' + String(q.number).padStart(4, "0") + "</span>"
+      : 'Novo <span class="acid">Orçamento</span>';
+
+    const clients = getClients();
+    document.getElementById("qClient").innerHTML =
+      '<option value="">Selecione o cliente...</option>' +
+      clients.map((c) => '<option value="' + c.id + '">' + esc(c.name) + "</option>").join("");
+    if (q) document.getElementById("qClient").value = q.clientId;
+
+    document.getElementById("pieceSelect").innerHTML =
+      '<option value="">Escolher peça...</option>' +
+      getPieces().map((p) => '<option value="' + p.id + '">' + esc(p.name) + "</option>").join("");
+
+    document.getElementById("qValidity").value = q ? q.validityDays : 7;
+    document.getElementById("qShipping").value = q ? q.shippingCharge : 0;
+    document.getElementById("qDiscount").value = q ? q.discountPct : 0;
+    document.getElementById("qNotes").value = q ? q.notes : "";
+
+    const logo = getSettings().logoDataUrl;
+    document.getElementById("logoHint").innerHTML = logo
+      ? "✓ O PDF sairá com a logo e os dados configurados da sua loja."
+      : 'Dica: adicione a logo e os dados da sua loja em <a href="configuracoes.html" style="color:var(--acid);text-decoration:underline;">Configurações</a> para um PDF completo.';
+
+    if (items.length === 0) addItem();
+    renderItems();
+    window.scrollTo({ top: 0 });
+  }
+  function closeBuilder() { renderList(); }
+
+  function pieceCost(inputs) {
+    const n = (v) => +v || 0;
+    const printHours = n(inputs.hours) + n(inputs.minutes) / 60;
+    const subtotal = (n(inputs.filamentPrice) / 1000) * n(inputs.grams) +
+      (n(inputs.printerPower) / 1000) * printHours * n(inputs.tariff) +
+      (n(inputs.printerCost) / Math.max(1, n(inputs.printerLife))) * printHours +
+      (n(inputs.laborMin) / 60) * n(inputs.laborRate) + n(inputs.packCost) + n(inputs.shipCost);
+    return subtotal * (1 + n(inputs.failRate) / 100);
+  }
+
+  function addItem(desc, price) {
+    items.push({ id: uid(), description: desc || "", quantity: 1, unitPrice: price || 0 });
+    renderItems();
+  }
+
+  function addFromPiece() {
+    const sel = document.getElementById("pieceSelect");
+    const piece = getPieces().find((p) => p.id === sel.value);
+    if (!piece) { sel.focus(); return; }
+    // Preço sugerido: venda direta (Loja Própria) com a margem salva na peça
+    const own = MARKETPLACES.find((m) => m.id === "own");
+    const cost = pieceCost(piece.inputs);
+    const price = mkSuggestPrice(own, cost, +piece.inputs.margin || 30, +piece.inputs.taxRate || 0);
+    addItem(piece.name, Math.round(price * 100) / 100);
+    sel.value = "";
+  }
+
+  function renderItems() {
+    document.getElementById("itemsBody").innerHTML = items.map((it, i) =>
+      '<div class="item-row">' +
+        '<input class="input" type="text" value="' + esc(it.description) + '" placeholder="Descrição do item" oninput="upItem(' + i + ",'description',this.value)\" />" +
+        '<input class="input" type="number" value="' + it.quantity + '" min="1" step="1" style="text-align:right;" oninput="upItem(' + i + ",'quantity',this.value)\" />" +
+        '<input class="input" type="number" value="' + it.unitPrice + '" min="0" step="0.5" style="text-align:right;" oninput="upItem(' + i + ",'unitPrice',this.value)\" />" +
+        '<span class="line-total tnum" id="line-' + i + '">' + BRL((+it.unitPrice || 0) * (+it.quantity || 0)) + "</span>" +
+        '<button class="btn btn-sm btn-ghost" title="Remover item" onclick="rmItem(' + i + ')">×</button>' +
+      "</div>"
+    ).join("");
+    renderTotals();
+  }
+
+  function upItem(i, field, value) {
+    items[i][field] = field === "description" ? value : +value || 0;
+    document.getElementById("line-" + i).textContent = BRL((+items[i].unitPrice || 0) * (+items[i].quantity || 0));
+    renderTotals();
+  }
+  function rmItem(i) { items.splice(i, 1); renderItems(); }
+
+  function currentQuoteData() {
+    return {
+      clientId: document.getElementById("qClient").value,
+      items: items.filter((it) => it.description.trim() || it.unitPrice > 0),
+      discountPct: +document.getElementById("qDiscount").value || 0,
+      shippingCharge: +document.getElementById("qShipping").value || 0,
+      validityDays: +document.getElementById("qValidity").value || 7,
+      notes: document.getElementById("qNotes").value.trim(),
+    };
+  }
+
+  function renderTotals() {
+    const q = currentQuoteData();
+    const t = quoteTotals(q);
+    document.getElementById("tSubtotal").textContent = BRL(t.subtotal);
+    document.getElementById("tDiscountRow").style.display = q.discountPct > 0 ? "" : "none";
+    document.getElementById("tDiscountLabel").textContent = "Desconto (" + q.discountPct + "%)";
+    document.getElementById("tDiscount").textContent = "- " + BRL(t.discount);
+    document.getElementById("tShippingRow").style.display = q.shippingCharge > 0 ? "" : "none";
+    document.getElementById("tShipping").textContent = BRL(q.shippingCharge);
+    document.getElementById("tTotal").textContent = BRL(t.total);
+  }
+
+  function saveCurrentQuote(withPdf) {
+    const data = currentQuoteData();
+    const clientSel = document.getElementById("qClient");
+    clientSel.classList.remove("error");
+    if (!data.clientId) { clientSel.classList.add("error"); clientSel.focus(); return; }
+    if (data.items.length === 0) { alert("Adicione ao menos um item ao orçamento."); return; }
+    const saved = saveQuote(data, editingId);
+    editingId = saved.id;
+    if (withPdf) pdfQuote(saved.id);
+    renderList();
+  }
+
+  /* ============ PDF ============ */
+  const PDF_BLACK = [10, 10, 12];
+  const PDF_ACID = [197, 242, 48];
+  const PDF_GRAY = [120, 120, 126];
+  const PDF_LINE = [225, 225, 222];
+
+  function loadImg(dataUrl) {
+    return new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => res(img);
+      img.onerror = rej;
+      img.src = dataUrl;
+    });
+  }
+
+  async function pdfQuote(id) {
+    const q = getQuotes().find((x) => x.id === id);
+    if (!q) return;
+    const client = getClients().find((c) => c.id === q.clientId);
+    const st = getSettings();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 18;
+    let y = 20;
+
+    // Cabeçalho — logo + dados da loja
+    let logoBottom = y;
+    if (st.logoDataUrl) {
+      try {
+        const img = await loadImg(st.logoDataUrl);
+        const ratio = Math.min(44 / img.width, 20 / img.height);
+        const w = img.width * ratio, h = img.height * ratio;
+        const fmt = st.logoDataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
+        doc.addImage(st.logoDataUrl, fmt, margin, y - 6, w, h);
+        logoBottom = y - 6 + h;
+      } catch {}
+    }
+    doc.setFont("helvetica", "bold").setFontSize(14).setTextColor(...PDF_BLACK);
+    doc.text(st.name || "Minha Loja", pageW - margin, y - 2, { align: "right" });
+    doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...PDF_GRAY);
+    const storeLines = [
+      st.tagline,
+      st.doc && "CNPJ/CPF: " + st.doc,
+      [st.email, st.phone].filter(Boolean).join("  |  "),
+      st.address,
+    ].filter(Boolean);
+    storeLines.forEach((line, i) => doc.text(String(line), pageW - margin, y + 3 + i * 4.5, { align: "right" }));
+    y = Math.max(logoBottom, y + 3 + storeLines.length * 4.5) + 8;
+
+    // Faixa acid
+    doc.setFillColor(...PDF_ACID);
+    doc.rect(margin, y, pageW - margin * 2, 1.6, "F");
+    y += 10;
+
+    doc.setFont("helvetica", "bold").setFontSize(18).setTextColor(...PDF_BLACK);
+    doc.text("ORÇAMENTO Nº " + String(q.number).padStart(4, "0"), margin, y);
+    const validity = new Date(q.createdAt);
+    validity.setDate(validity.getDate() + q.validityDays);
+    doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...PDF_GRAY);
+    doc.text("Emitido em " + DATE_BR(q.createdAt) + "  ·  Válido até " + validity.toLocaleDateString("pt-BR"), pageW - margin, y, { align: "right" });
+    y += 10;
+
+    // Cliente
+    doc.setFontSize(8).setTextColor(...PDF_GRAY).text("CLIENTE", margin, y);
+    y += 5;
+    doc.setFont("helvetica", "bold").setFontSize(11).setTextColor(...PDF_BLACK);
+    doc.text(client?.name || "Cliente não informado", margin, y);
+    doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...PDF_GRAY);
+    const clientLines = [
+      client?.doc && "CPF/CNPJ: " + client.doc,
+      [client?.email, client?.phone].filter(Boolean).join("  |  "),
+      client?.address,
+    ].filter(Boolean);
+    clientLines.forEach((line, i) => doc.text(String(line), margin, y + 5 + i * 4.5));
+    y += 5 + clientLines.length * 4.5 + 6;
+
+    // Itens
+    doc.autoTable({
+      startY: y,
+      margin: { left: margin, right: margin },
+      head: [["Descrição", "Qtd.", "Valor unit.", "Subtotal"]],
+      body: q.items.map((it) => [
+        it.description || "—",
+        String(it.quantity),
+        BRL(it.unitPrice),
+        BRL(it.unitPrice * it.quantity),
+      ]),
+      styles: { font: "helvetica", fontSize: 9, textColor: PDF_BLACK, lineColor: PDF_LINE, lineWidth: 0.2, cellPadding: 3 },
+      headStyles: { fillColor: PDF_BLACK, textColor: [255, 255, 255], fontStyle: "bold" },
+      columnStyles: { 1: { halign: "center", cellWidth: 18 }, 2: { halign: "right", cellWidth: 32 }, 3: { halign: "right", cellWidth: 32 } },
+      alternateRowStyles: { fillColor: [248, 248, 246] },
+    });
+    y = doc.lastAutoTable.finalY;
+
+    // Totais
+    const t = quoteTotals(q);
+    let ty = y + 8;
+    const totalsX = pageW - margin;
+    doc.setFontSize(9).setFont("helvetica", "normal").setTextColor(...PDF_GRAY);
+    const totalLine = (label, value) => { doc.text(label, totalsX - 58, ty); doc.text(value, totalsX, ty, { align: "right" }); ty += 5.5; };
+    totalLine("Subtotal", BRL(t.subtotal));
+    if (q.discountPct > 0) totalLine("Desconto (" + q.discountPct + "%)", "- " + BRL(t.discount));
+    if (q.shippingCharge > 0) totalLine("Frete", BRL(q.shippingCharge));
+
+    // TOTAL em faixa acid (texto preto — legível na impressão)
+    ty += 2;
+    doc.setFillColor(...PDF_ACID);
+    doc.rect(totalsX - 64, ty - 4.5, 64, 9, "F");
+    doc.setFont("helvetica", "bold").setFontSize(11).setTextColor(...PDF_BLACK);
+    doc.text("TOTAL", totalsX - 60, ty + 1.5);
+    doc.text(BRL(t.total), totalsX - 2, ty + 1.5, { align: "right" });
+
+    // Observações
+    let ny = ty + 16;
+    if (q.notes) {
+      doc.setFont("helvetica", "bold").setFontSize(8).setTextColor(...PDF_GRAY).text("OBSERVAÇÕES", margin, ny);
+      ny += 4.5;
+      doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...PDF_BLACK);
+      const noteLines = doc.splitTextToSize(q.notes, pageW - margin * 2);
+      doc.text(noteLines, margin, ny);
+    }
+
+    // Rodapé
+    if (st.quoteFooter) {
+      doc.setFontSize(7.5).setTextColor(...PDF_GRAY);
+      const footerLines = doc.splitTextToSize(st.quoteFooter, pageW - margin * 2);
+      doc.text(footerLines, pageW / 2, pageH - 14, { align: "center" });
+    }
+
+    const slug = (client?.name || "cliente").toLowerCase().normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    doc.save("orcamento-" + String(q.number).padStart(4, "0") + "-" + slug + ".pdf");
+  }
+
+  (async function boot() {
+    const lead = await requireAuth();
+    if (!lead) return;
+    const plan = await getPlan();
+    renderAppChrome("orcamentos.html", lead, plan);
+    if (plan !== "pro") {
+      document.getElementById("pageBody").innerHTML = proWallHTML(
+        "Orçamentos em PDF",
+        "Monte orçamentos com suas peças salvas, aplique desconto e frete, e baixe um PDF profissional com a logo e os dados da sua loja."
+      );
+      return;
+    }
+    const editId = consumeQuoteEdit();
+    if (editId) openBuilder(editId);
+    else renderList();
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CalcPro 3D — Clientes</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<div class="app">
+  <div id="appChrome"></div>
+  <div id="pageBody"></div>
+  <footer class="app-foot"><span>CalcPro 3D · dados salvos no navegador</span></footer>
+</div>
+
+<!-- Modal cliente -->
+<div class="modal-overlay" id="clientModal">
+  <div class="modal-box">
+    <button class="m-close" aria-label="Fechar" onclick="closeForm()" style="position:absolute;top:14px;right:16px;color:var(--muted-2);font-size:22px;line-height:1;">×</button>
+    <h2 class="m-title" id="formTitle">Novo cliente</h2>
+    <div class="field"><label class="field-label" for="fName">Nome *</label><input class="input" type="text" id="fName" placeholder="Nome do cliente ou empresa" /></div>
+    <div class="input-row">
+      <div class="field"><label class="field-label" for="fDoc">CPF/CNPJ</label><input class="input" type="text" id="fDoc" /></div>
+      <div class="field"><label class="field-label" for="fPhone">Telefone/WhatsApp</label><input class="input" type="tel" id="fPhone" placeholder="(11) 99999-9999" /></div>
+    </div>
+    <div class="field"><label class="field-label" for="fEmail">E-mail</label><input class="input" type="email" id="fEmail" /></div>
+    <div class="field"><label class="field-label" for="fAddress">Endereço</label><input class="input" type="text" id="fAddress" /></div>
+    <div class="field"><label class="field-label" for="fNotes">Observações</label><textarea class="input" id="fNotes" rows="2"></textarea></div>
+    <button class="btn btn-acid btn-block cut" id="btnSubmit" onclick="submitForm()">Cadastrar cliente</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="app-core.js"></script>
+<script>
+  let editingId = null;
+
+  function render() {
+    const clients = getClients();
+    const body = document.getElementById("pageBody");
+    let html =
+      '<div class="page-head"><div>' +
+      '<h1 class="page-title">Clientes</h1>' +
+      '<p class="page-sub">' + clients.length + " cliente(s) cadastrado(s)</p></div>" +
+      '<button class="btn btn-acid cut" onclick="openForm()">Novo cliente</button></div>';
+
+    if (clients.length === 0) {
+      html += '<div class="panel"><div class="empty">' +
+        "<h3>Nenhum cliente cadastrado</h3>" +
+        "<p>Cadastre seu primeiro cliente para gerar orçamentos em PDF já preenchidos com nome, contato e endereço.</p>" +
+        '<button class="btn btn-acid cut" onclick="openForm()">Cadastrar cliente</button></div></div>';
+    } else {
+      html += '<div class="rec-grid">' + clients.map((c) =>
+        '<div class="rec-card">' +
+          '<div><h2 class="rec-title">' + esc(c.name) + "</h2>" +
+          '<div class="rec-meta">' +
+            (c.doc ? "CPF/CNPJ: " + esc(c.doc) + "<br>" : "") +
+            (c.email || c.phone ? esc([c.email, c.phone].filter(Boolean).join(" · ")) + "<br>" : "") +
+            (c.address ? esc(c.address) + "<br>" : "") +
+            (c.notes ? '<i style="color:var(--muted-2);">' + esc(c.notes) + "</i>" : "") +
+          "</div></div>" +
+          '<div class="rec-actions">' +
+            '<button class="btn btn-sm" onclick="openForm(\'' + c.id + '\')">Editar</button>' +
+            '<button class="btn btn-sm btn-ghost" onclick="del(\'' + c.id + '\')">Excluir</button>' +
+          "</div></div>"
+      ).join("") + "</div>";
+    }
+    body.innerHTML = html;
+  }
+
+  function openForm(id) {
+    editingId = id || null;
+    const c = id ? getClients().find((x) => x.id === id) : null;
+    document.getElementById("formTitle").textContent = c ? "Editar cliente" : "Novo cliente";
+    document.getElementById("btnSubmit").textContent = c ? "Salvar alterações" : "Cadastrar cliente";
+    document.getElementById("fName").value = c?.name || "";
+    document.getElementById("fDoc").value = c?.doc || "";
+    document.getElementById("fPhone").value = c?.phone || "";
+    document.getElementById("fEmail").value = c?.email || "";
+    document.getElementById("fAddress").value = c?.address || "";
+    document.getElementById("fNotes").value = c?.notes || "";
+    document.getElementById("clientModal").classList.add("open");
+    document.getElementById("fName").focus();
+  }
+  function closeForm() { document.getElementById("clientModal").classList.remove("open"); }
+
+  function submitForm() {
+    const name = document.getElementById("fName").value.trim();
+    const nameInput = document.getElementById("fName");
+    nameInput.classList.remove("error");
+    if (!name) { nameInput.classList.add("error"); nameInput.focus(); return; }
+    saveClient({
+      name,
+      doc: document.getElementById("fDoc").value.trim(),
+      phone: document.getElementById("fPhone").value.trim(),
+      email: document.getElementById("fEmail").value.trim(),
+      address: document.getElementById("fAddress").value.trim(),
+      notes: document.getElementById("fNotes").value.trim(),
+    }, editingId);
+    closeForm();
+    render();
+  }
+
+  function del(id) {
+    const c = getClients().find((x) => x.id === id);
+    if (c && confirm("Excluir o cliente “" + c.name + "”?")) { deleteClient(id); render(); }
+  }
+
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeForm(); });
+
+  (async function boot() {
+    const lead = await requireAuth();
+    if (!lead) return;
+    const plan = await getPlan();
+    renderAppChrome("clientes.html", lead, plan);
+    if (plan !== "pro") {
+      document.getElementById("pageBody").innerHTML = proWallHTML(
+        "Cadastro de clientes",
+        "Guarde os dados dos seus clientes e gere orçamentos em PDF em segundos, já preenchidos com nome, contato e endereço."
+      );
+      return;
+    }
+    render();
+  })();
+</script>
+</body>
+</html>

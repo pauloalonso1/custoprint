@@ -3,280 +3,111 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>CalcPro 3D — Calculadora de Precificacao 3D</title>
-<meta name="description" content="Calcule o preco ideal das suas pecas 3D. Material, energia, depreciacao, margem e taxas de Shopee e Mercado Livre inclusos." />
+<title>CalcPro 3D — Calculadora de Precificação 3D</title>
+<meta name="description" content="Calcule o preço ideal das suas peças 3D. Material, energia, depreciação, margem e taxas de Shopee e Mercado Livre inclusos." />
 <meta name="robots" content="noindex, nofollow" />
-<meta property="og:title" content="CalcPro 3D — Calculadora de Precificacao 3D" />
-<meta property="og:description" content="Calcule o preco ideal das suas pecas 3D com todos os custos inclusos." />
+<meta property="og:title" content="CalcPro 3D — Calculadora de Precificação 3D" />
+<meta property="og:description" content="Calcule o preço ideal das suas peças 3D com todos os custos inclusos." />
 <meta property="og:image" content="https://custoprint.vercel.app/og-image.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="app.css" />
 <style>
-  :root {
-    --bg: #000000;
-    --panel: #0E0E0F;
-    --panel-2: #141416;
-    --panel-3: #1A1A1D;
-    --line: rgba(255,255,255,.09);
-    --line-2: rgba(255,255,255,.16);
-    --ink: #FFFFFF;
-    --muted: #9A9AA0;
-    --muted-2: #6C6C72;
-    --acid: #C5F230;
-    --acid-dim: rgba(197,242,48,.13);
-    --acid-line: rgba(197,242,48,.4);
-    --display: "Archivo Black", "Archivo", system-ui, sans-serif;
-    --sans: "Archivo", system-ui, -apple-system, sans-serif;
-    --mono: "Geist Mono", ui-monospace, monospace;
-    --cut: 16px;
-    --cost-material: #3b82f6; --cost-energy: #f5b21f; --cost-deprec: #a855f7; --cost-fail: #f0454d; --cost-labor: #22d3ee; --cost-ship: #f97316;
-    --mk-shopee: #EE4D2D; --mk-ml: #FFE600;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    background: var(--bg); color: var(--ink);
-    font-family: var(--sans); font-weight: 400; line-height: 1.55;
-    -webkit-font-smoothing: antialiased; overflow-x: hidden;
-  }
-  a { color: inherit; text-decoration: none; }
-  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
-  input, select { font-family: inherit; }
-  ::selection { background: var(--acid); color: #000; }
+  /* Modal “completar cadastro Google” (específico desta página) */
+  .m-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .m-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .m-input { width: 100%; font-size: 15px; font-weight: 500; color: var(--ink); background: var(--bg); border: 1px solid var(--line-2); padding: 13px 16px; font-family: var(--sans); transition: border-color .15s, box-shadow .15s; }
+  .m-input::placeholder { color: var(--muted-2); }
+  .m-input:focus { outline: none; border-color: var(--acid); box-shadow: 0 0 0 3px rgba(197,242,48,.2); }
+  .m-input.error { border-color: var(--danger); }
+  .m-error { font-size: 12px; color: var(--danger); margin-top: -8px; margin-bottom: 8px; display: none; }
+  .m-error.show { display: block; }
+  .m-consent { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; cursor: pointer; }
+  .m-consent input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; background: var(--bg); border: 1px solid var(--line-2); cursor: pointer; transition: all .15s; display: grid; place-items: center; }
+  .m-consent input[type="checkbox"]:checked { background: var(--acid); border-color: var(--acid); }
+  .m-consent input[type="checkbox"]:checked::after { content: ""; width: 10px; height: 6px; border-left: 2px solid #0A0E00; border-bottom: 2px solid #0A0E00; transform: rotate(-45deg) translateY(-1px); }
+  .m-consent input[type="checkbox"].error { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(240,69,77,.25); }
+  .m-consent-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .m-consent-text a { color: var(--acid); text-decoration: underline; }
+  .m-msg { text-align: center; padding: 12px; margin-top: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; display: none; }
+  .m-msg.show { display: block; }
+  .m-msg.fail { color: var(--danger-soft); background: rgba(240,69,77,.12); border: 1px solid rgba(240,69,77,.3); }
 
-  .acid { color: var(--acid); }
-  .cut { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%); }
-
-  /* APP LAYOUT */
-  .app { max-width: 1440px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 40px) 60px; }
-
-  /* TOPBAR */
-  .topbar {
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    padding: 22px 0; border-bottom: 1px solid var(--line); margin-bottom: 32px; flex-wrap: wrap;
-  }
-  .logo { font-family: var(--display); font-size: 20px; text-transform: uppercase; display: flex; align-items: center; gap: 11px; }
-  .logo .mk { width: 34px; height: 34px; background: var(--acid); color: #000; display: grid; place-items: center; }
-  .logo .mk svg { width: 19px; height: 19px; }
-  .topbar-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  .welcome { font-size: 14px; color: var(--muted); }
-  .welcome b { color: var(--acid); }
-  .btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-weight: 600; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 18px; transition: all .15s; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--ink); }
-  .btn:hover { border-color: var(--acid-line); color: var(--acid); }
-
-  /* BODY GRID */
-  .body-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-  @media (max-width: 800px) { .body-grid { grid-template-columns: 1fr; } }
-
-  /* PANELS */
-  .panel { background: var(--panel); border: 1px solid var(--line); padding: 28px 26px; }
-  .panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
-  .panel-icon { width: 34px; height: 34px; background: var(--acid-dim); color: var(--acid); display: grid; place-items: center; flex-shrink: 0; }
-  .panel-title { font-family: var(--display); font-size: 15px; text-transform: uppercase; margin: 0; }
-
-  /* FIELDS */
-  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  .field-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-  .field-hint { font-size: 12px; color: var(--muted-2); }
-  .input {
-    width: 100%; font-size: 14px; font-weight: 500; color: var(--ink);
-    background: var(--bg); border: 1px solid var(--line-2); padding: 10px 13px;
-    font-family: var(--sans); transition: border-color .15s;
-  }
-  .input:focus { outline: none; border-color: var(--acid); box-shadow: 0 0 0 3px rgba(197,242,48,.15); }
-  .input::placeholder { color: var(--muted-2); }
-  select.input { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239A9AA0' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; }
-  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .input-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-  .input-suffix { position: relative; }
-  .input-suffix .suf { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 11px; color: var(--muted-2); pointer-events: none; }
-  .input-suffix .input { padding-right: 50px; }
-
-  /* MARGIN SLIDER */
-  .margin-block { margin-top: 6px; padding: 16px; background: rgba(197,242,48,.06); border: 1px solid var(--acid-line); }
-  .margin-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .margin-val { font-family: var(--display); font-size: 28px; color: var(--acid); }
-  .range { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--panel-3); outline: none; cursor: pointer; }
-  .range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 0; background: var(--acid); cursor: pointer; }
-  .range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 0; border: none; background: var(--acid); cursor: pointer; }
-  .margin-scale { display: flex; justify-content: space-between; margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--muted-2); }
-
-  /* RESULTS */
-  .results-col { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 16px; }
-  @media (max-width: 800px) { .results-col { position: static; } }
-
-  .cost-list { list-style: none; margin: 0; padding: 0; }
-  .cost-list li { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; font-size: 14px; }
-  .cost-list li + li { border-top: 1px solid rgba(255,255,255,.06); }
-  .cost-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; margin-right: 10px; display: inline-block; }
-  .cost-val { font-family: var(--mono); font-weight: 600; }
-
-  .total-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 0; border-top: 1px solid var(--line-2); margin-top: 8px; }
-  .total-label { font-family: var(--display); font-size: 15px; text-transform: uppercase; }
-  .total-val { font-family: var(--display); font-size: 32px; color: var(--acid); }
-
-  /* MARKETPLACE CARDS */
-  .mk-card {
-    background: var(--panel-2); border: 1px solid var(--line); border-left: 4px solid var(--mk-color);
-    padding: 16px 18px; transition: transform .14s;
-  }
-  .mk-card:hover { transform: translateY(-2px); }
-  .mk-card + .mk-card { margin-top: 12px; }
-  .mk-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .mk-name { font-weight: 700; font-size: 15px; }
-  .mk-price { font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-  .mk-stats { display: flex; gap: 24px; margin-top: 10px; }
-  .mk-stat-k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
-  .mk-stat-v { font-family: var(--mono); font-size: 13px; font-weight: 600; margin-top: 2px; }
-  .mk-stat-v.fee { color: #ff6b73; }
-  .mk-stat-v.profit { color: #56e08a; }
-  .mk-note { font-size: 11px; color: var(--muted-2); margin-top: 8px; }
-  .mk-best { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; background: var(--acid); color: #0A0E00; padding: 3px 8px; font-weight: 600; }
-
-  /* TEASER */
-  .teaser {
-    background: var(--acid-dim); border: 1px dashed var(--acid-line); padding: 24px;
-    text-align: center;
-  }
-  .teaser h3 { font-family: var(--display); font-size: 16px; text-transform: uppercase; margin: 0 0 8px; }
-  .teaser p { font-size: 14px; color: var(--muted); margin: 0 0 16px; line-height: 1.5; }
-  .teaser .tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
-  .teaser .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 12px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
-  .btn-acid { background: var(--acid); color: #0A0E00; border: none; font-family: var(--mono); font-weight: 600; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 24px; cursor: pointer; transition: all .15s; }
-  .btn-acid:hover { background: #d4ff44; transform: translateY(-1px); }
-
-  /* FOOTER */
-  .app-foot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); text-align: center; font-size: 12px; color: var(--muted-2); }
-
-  /* COMPLETE PROFILE MODAL */
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
-    display: none; align-items: center; justify-content: center; padding: 24px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal-box {
-    background: var(--panel); width: 100%; max-width: 440px; padding: 40px 36px 36px; position: relative;
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%);
-    animation: modalIn .22s ease-out;
-  }
-  @keyframes modalIn { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
-  .modal-box .m-title { font-family: var(--display); font-size: 22px; text-transform: uppercase; margin: 0 0 8px; }
-  .modal-box .m-sub { font-size: 14px; color: var(--muted); margin: 0 0 24px; line-height: 1.5; }
-  .modal-box .m-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  .modal-box .m-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-  .modal-box .m-input {
-    width: 100%; font-size: 15px; font-weight: 500; color: var(--ink);
-    background: var(--bg); border: 1px solid var(--line-2); padding: 13px 16px;
-    font-family: var(--sans); transition: border-color .15s, box-shadow .15s;
-  }
-  .modal-box .m-input::placeholder { color: var(--muted-2); }
-  .modal-box .m-input:focus { outline: none; border-color: var(--acid); box-shadow: 0 0 0 3px rgba(197,242,48,.2); }
-  .modal-box .m-input.error { border-color: #f0454d; }
-  .modal-box .m-error { font-size: 12px; color: #f0454d; margin-top: -8px; margin-bottom: 8px; display: none; }
-  .modal-box .m-error.show { display: block; }
-  .modal-box .m-consent { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; cursor: pointer; }
-  .modal-box .m-consent input[type="checkbox"] {
-    appearance: none; -webkit-appearance: none; width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px;
-    background: var(--bg); border: 1px solid var(--line-2); cursor: pointer; transition: all .15s;
-    display: grid; place-items: center;
-  }
-  .modal-box .m-consent input[type="checkbox"]:checked { background: var(--acid); border-color: var(--acid); }
-  .modal-box .m-consent input[type="checkbox"]:checked::after { content: ""; width: 10px; height: 6px; border-left: 2px solid #0A0E00; border-bottom: 2px solid #0A0E00; transform: rotate(-45deg) translateY(-1px); }
-  .modal-box .m-consent input[type="checkbox"].error { border-color: #f0454d; box-shadow: 0 0 0 2px rgba(240,69,77,.25); }
-  .modal-box .m-consent-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
-  .modal-box .m-consent-text a { color: var(--acid); text-decoration: underline; }
-  .modal-box .m-msg {
-    text-align: center; padding: 12px; margin-top: 12px;
-    font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; display: none;
-  }
-  .modal-box .m-msg.show { display: block; }
-  .modal-box .m-msg.fail { color: #ff6b73; background: rgba(240,69,77,.12); border: 1px solid rgba(240,69,77,.3); }
+  .piece-flag { font-size: 12px; color: var(--muted-2); margin: -16px 0 20px; }
+  .piece-flag b { color: var(--acid); font-weight: 600; }
+  .cap-box { border: 1px solid var(--line-2); background: var(--panel-2); padding: 10px 13px; font-size: 13px; color: var(--muted); }
+  .cap-box.warn { border-color: rgba(245,178,31,.45); background: rgba(245,178,31,.08); color: var(--warning); }
+  .cap-box b { color: var(--ink); font-family: var(--mono); }
+  .sim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .sim-card { background: var(--panel-2); border: 1px solid var(--line); padding: 15px 17px; }
+  .sim-card .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+  .sim-card .row.total { border-top: 1px solid var(--line-2); margin-top: 6px; padding-top: 9px; }
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <a class="logo" href="index.html">
-      <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="6" rx="1"/><path d="M6 14H4a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></span>
-      CALC<span class="acid">PRO 3D</span>
-    </a>
-    <div class="topbar-right">
-      <span class="welcome" id="welcomeMsg"></span>
-      <button class="btn" onclick="logout()">Sair</button>
-    </div>
-  </header>
+  <div id="appChrome"></div>
+
+  <p class="piece-flag" id="pieceFlag" style="display:none;">Editando peça: <b id="pieceFlagName"></b></p>
+  <div class="alert alert-warn" id="marginAlert" style="display:none;" role="alert">
+    Atenção: com o imposto informado, comissão + imposto chega a 100% do preço em algum canal selecionado — não existe preço que entregue a margem desejada nesse canal.
+  </div>
 
   <!-- BODY -->
   <div class="body-grid">
     <!-- INPUTS -->
     <div>
-      <!-- MATERIAL / FILAMENTO -->
       <div class="panel">
-        <div class="panel-head">
+        <div class="panel-head"><div class="panel-head-left">
           <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.4"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></span>
           <h2 class="panel-title">Material / <span class="acid">Filamento</span></h2>
-        </div>
+        </div></div>
         <div class="field">
-          <label class="field-label">Tipo de material</label>
+          <label class="field-label" for="filament">Tipo de material</label>
           <select class="input" id="filament" onchange="onFilament()">
             <option value="PLA" data-price="100">PLA</option>
             <option value="PETG" data-price="120">PETG</option>
             <option value="ABS" data-price="110">ABS</option>
-            <option value="TPU" data-price="160">TPU (flexivel)</option>
+            <option value="TPU" data-price="160">TPU (flexível)</option>
             <option value="RESINA" data-price="250">Resina</option>
           </select>
         </div>
         <div class="input-row">
           <div class="field">
-            <label class="field-label">Preco / kg</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="filamentPrice" value="100" step="1" oninput="calc()" />
-              <span class="suf">R$/kg</span>
-            </div>
+            <label class="field-label" for="filamentPrice">Preço / kg</label>
+            <div class="input-suffix"><input class="input" type="number" id="filamentPrice" value="100" step="1" min="0" oninput="calc()" /><span class="suf">R$/kg</span></div>
           </div>
           <div class="field">
-            <label class="field-label">Material usado</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="grams" value="50" step="1" oninput="calc()" />
-              <span class="suf">g</span>
-            </div>
+            <label class="field-label" for="grams">Material usado</label>
+            <div class="input-suffix"><input class="input" type="number" id="grams" value="50" step="1" min="0" oninput="calc()" /><span class="suf">g</span></div>
           </div>
         </div>
       </div>
 
-      <!-- IMPRESSORA 3D -->
-      <div class="panel" style="margin-top: 20px;">
-        <div class="panel-head">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-head-left">
           <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="6" rx="1"/><path d="M6 14H4a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></span>
           <h2 class="panel-title">Impressora <span class="acid">3D</span></h2>
-        </div>
+        </div></div>
         <div class="field">
-          <label class="field-label">Modelo da impressora</label>
+          <label class="field-label" for="printer">Modelo da impressora</label>
           <select class="input" id="printer" onchange="onPrinter()">
             <optgroup label="Creality">
-              <option value="0">Ender 3 V3 SE</option>
-              <option value="1">Ender 3 V3</option>
-              <option value="2">Ender 3 S1 Pro</option>
-              <option value="3">Ender 3 V3 Plus</option>
-              <option value="4">K1</option>
-              <option value="5">K1 Max</option>
+              <option value="0">Ender 3 V3 SE</option><option value="1">Ender 3 V3</option>
+              <option value="2">Ender 3 S1 Pro</option><option value="3">Ender 3 V3 Plus</option>
+              <option value="4">K1</option><option value="5">K1 Max</option>
             </optgroup>
             <optgroup label="Bambu Lab">
-              <option value="6">A1 Mini</option>
-              <option value="7">A1</option>
-              <option value="8">P1S</option>
-              <option value="9">X1 Carbon</option>
+              <option value="6">A1 Mini</option><option value="7">A1</option>
+              <option value="8">P1S</option><option value="9">X1 Carbon</option>
             </optgroup>
             <optgroup label="Anycubic">
-              <option value="10">Kobra 2</option>
-              <option value="11">Kobra 3</option>
+              <option value="10">Kobra 2</option><option value="11">Kobra 3</option>
               <option value="12">Photon Mono M5s (Resina)</option>
             </optgroup>
             <optgroup label="Elegoo">
-              <option value="13">Neptune 4</option>
-              <option value="14">Neptune 4 Pro</option>
+              <option value="13">Neptune 4</option><option value="14">Neptune 4 Pro</option>
               <option value="15">Saturn 3 Ultra (Resina)</option>
             </optgroup>
             <optgroup label="Outros">
@@ -288,131 +119,99 @@
         </div>
         <div class="input-row">
           <div class="field">
-            <label class="field-label">Potencia</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="printerPower" value="350" step="10" oninput="calc()" />
-              <span class="suf">W</span>
-            </div>
+            <label class="field-label" for="printerPower">Potência</label>
+            <div class="input-suffix"><input class="input" type="number" id="printerPower" value="350" step="10" min="0" oninput="calc()" /><span class="suf">W</span></div>
           </div>
           <div class="field">
-            <label class="field-label">Custo do kWh</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="tariff" value="0.85" step="0.01" oninput="calc()" />
-              <span class="suf">R$/kWh</span>
-            </div>
+            <label class="field-label" for="tariff">Custo do kWh</label>
+            <div class="input-suffix"><input class="input" type="number" id="tariff" value="0.85" step="0.01" min="0" oninput="calc()" /><span class="suf">R$/kWh</span></div>
           </div>
         </div>
         <div class="input-row">
           <div class="field">
-            <label class="field-label">Valor da impressora</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="printerCost" value="1200" step="100" oninput="calc()" />
-              <span class="suf">R$</span>
-            </div>
+            <label class="field-label" for="printerCost">Valor da impressora</label>
+            <div class="input-suffix"><input class="input" type="number" id="printerCost" value="1200" step="100" min="0" oninput="calc()" /><span class="suf">R$</span></div>
           </div>
           <div class="field">
-            <label class="field-label">Vida util</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="printerLife" value="3000" step="100" oninput="calc()" />
-              <span class="suf">h</span>
-            </div>
+            <label class="field-label" for="printerLife">Vida útil</label>
+            <div class="input-suffix"><input class="input" type="number" id="printerLife" value="3000" step="100" min="0" oninput="calc()" /><span class="suf">h</span></div>
           </div>
         </div>
       </div>
 
-      <!-- IMPRESSAO -->
-      <div class="panel" style="margin-top: 20px;">
-        <div class="panel-head">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-head-left">
           <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
-          <h2 class="panel-title">Impressao</h2>
-        </div>
+          <h2 class="panel-title">Impressão</h2>
+        </div></div>
         <div class="input-row-3">
           <div class="field">
-            <label class="field-label">Horas</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="hours" value="4" min="0" step="1" oninput="calc()" />
-              <span class="suf">h</span>
-            </div>
+            <label class="field-label" for="hours">Horas</label>
+            <div class="input-suffix"><input class="input" type="number" id="hours" value="4" min="0" step="1" oninput="calc()" /><span class="suf">h</span></div>
           </div>
           <div class="field">
-            <label class="field-label">Minutos</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="minutes" value="30" min="0" max="59" step="1" oninput="calc()" />
-              <span class="suf">min</span>
-            </div>
+            <label class="field-label" for="minutes">Minutos</label>
+            <div class="input-suffix"><input class="input" type="number" id="minutes" value="30" min="0" max="59" step="1" oninput="calc()" /><span class="suf">min</span></div>
           </div>
           <div class="field">
-            <label class="field-label">Taxa de falha</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="failRate" value="5" min="0" max="50" step="1" oninput="calc()" />
-              <span class="suf">%</span>
-            </div>
+            <label class="field-label" for="failRate">Taxa de falha</label>
+            <div class="input-suffix"><input class="input" type="number" id="failRate" value="5" min="0" max="50" step="1" oninput="calc()" /><span class="suf">%</span></div>
           </div>
         </div>
       </div>
 
-      <!-- MAO DE OBRA -->
-      <div class="panel" style="margin-top: 20px;">
-        <div class="panel-head">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-head-left">
           <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
-          <h2 class="panel-title">Mao de <span class="acid">Obra</span></h2>
-        </div>
+          <h2 class="panel-title">Mão de <span class="acid">Obra</span></h2>
+        </div></div>
         <div class="input-row">
           <div class="field">
-            <label class="field-label">Pos-processamento</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="laborMin" value="0" min="0" step="5" oninput="calc()" />
-              <span class="suf">min</span>
-            </div>
+            <label class="field-label" for="laborMin">Pós-processamento</label>
+            <div class="input-suffix"><input class="input" type="number" id="laborMin" value="0" min="0" step="5" oninput="calc()" /><span class="suf">min</span></div>
           </div>
           <div class="field">
-            <label class="field-label">Valor / hora</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="laborRate" value="20" step="5" oninput="calc()" />
-              <span class="suf">R$/h</span>
-            </div>
+            <label class="field-label" for="laborRate">Valor / hora</label>
+            <div class="input-suffix"><input class="input" type="number" id="laborRate" value="20" step="5" min="0" oninput="calc()" /><span class="suf">R$/h</span></div>
           </div>
         </div>
       </div>
 
-      <!-- EMBALAGEM E ENVIO -->
-      <div class="panel" style="margin-top: 20px;">
-        <div class="panel-head">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-head-left">
           <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
           <h2 class="panel-title">Embalagem e <span class="acid">Envio</span></h2>
-        </div>
+        </div></div>
         <div class="input-row">
           <div class="field">
-            <label class="field-label">Embalagem / unidade</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="packCost" value="0" min="0" step="0.50" oninput="calc()" />
-              <span class="suf">R$</span>
-            </div>
+            <label class="field-label" for="packCost">Embalagem / unidade</label>
+            <div class="input-suffix"><input class="input" type="number" id="packCost" value="0" min="0" step="0.50" oninput="calc()" /><span class="suf">R$</span></div>
           </div>
           <div class="field">
-            <label class="field-label">Frete / unidade</label>
-            <div class="input-suffix">
-              <input class="input" type="number" id="shipCost" value="0" min="0" step="0.50" oninput="calc()" />
-              <span class="suf">R$</span>
-            </div>
+            <label class="field-label" for="shipCost">Frete / unidade</label>
+            <div class="input-suffix"><input class="input" type="number" id="shipCost" value="0" min="0" step="0.50" oninput="calc()" /><span class="suf">R$</span></div>
           </div>
         </div>
-        <p class="field-hint">Caixa, plastico bolha, etiqueta, fita e custo de envio por unidade.</p>
+        <p class="field-hint">Caixa, plástico bolha, etiqueta, fita e frete subsidiado por unidade.</p>
       </div>
 
-      <!-- MARGEM DE LUCRO -->
-      <div class="panel" style="margin-top: 20px;">
-        <div class="panel-head">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-head-left">
           <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg></span>
-          <h2 class="panel-title">Margem de <span class="acid">Lucro</span></h2>
-        </div>
+          <h2 class="panel-title">Margem e <span class="acid">Impostos</span></h2>
+        </div></div>
         <div class="margin-block">
           <div class="margin-head">
-            <label class="field-label">Margem desejada</label>
+            <label class="field-label" for="margin">Margem desejada</label>
             <span class="margin-val" id="marginVal">30%</span>
           </div>
           <input class="range" type="range" min="0" max="150" step="5" value="30" id="margin" oninput="calc()" />
           <div class="margin-scale"><span>0%</span><span>50%</span><span>100%</span><span>150%</span></div>
+        </div>
+        <div class="field" style="margin-top:16px;" id="taxField">
+          <label class="field-label" for="taxRate">Imposto sobre a venda <span class="tag-pro" id="taxProTag">Pro</span></label>
+          <div class="input-suffix"><input class="input" type="number" id="taxRate" value="0" min="0" max="40" step="0.5" oninput="calc()" /><span class="suf">%</span></div>
+          <p class="field-hint">MEI/Simples: informe seu percentual efetivo sobre o faturamento.</p>
         </div>
       </div>
     </div>
@@ -420,387 +219,572 @@
     <!-- RESULTS -->
     <div class="results-col">
       <div class="panel">
-        <div class="panel-head">
+        <div class="panel-head"><div class="panel-head-left">
           <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg></span>
-          <h2 class="panel-title">Custo de <span class="acid">Producao</span></h2>
+          <h2 class="panel-title">Custo de <span class="acid">Produção</span></h2>
+        </div>
+        <button class="btn btn-sm" id="btnSavePiece" onclick="openSavePiece()">Salvar peça</button>
         </div>
 
         <ul class="cost-list">
-          <li><span><span class="cost-dot" style="background:var(--cost-material)"></span>Material</span><span class="cost-val" id="cMaterial">R$ 0,00</span></li>
-          <li><span><span class="cost-dot" style="background:var(--cost-energy)"></span>Energia</span><span class="cost-val" id="cEnergy">R$ 0,00</span></li>
-          <li><span><span class="cost-dot" style="background:var(--cost-deprec)"></span>Depreciacao</span><span class="cost-val" id="cDeprec">R$ 0,00</span></li>
-          <li><span><span class="cost-dot" style="background:var(--cost-labor)"></span>Mao de obra</span><span class="cost-val" id="cLabor">R$ 0,00</span></li>
-          <li><span><span class="cost-dot" style="background:var(--cost-ship)"></span>Embalagem + Envio</span><span class="cost-val" id="cShip">R$ 0,00</span></li>
-          <li><span><span class="cost-dot" style="background:var(--cost-fail)"></span><span id="cFailLabel">Falha (5%)</span></span><span class="cost-val" id="cFail">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-material)"></span>Material</span><span class="cost-val tnum" id="cMaterial">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-energy)"></span>Energia</span><span class="cost-val tnum" id="cEnergy">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-deprec)"></span>Depreciação</span><span class="cost-val tnum" id="cDeprec">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-labor)"></span>Mão de obra</span><span class="cost-val tnum" id="cLabor">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-ship)"></span>Embalagem + Envio</span><span class="cost-val tnum" id="cShip">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-fail)"></span><span id="cFailLabel">Falha (5%)</span></span><span class="cost-val tnum" id="cFail">R$ 0,00</span></li>
         </ul>
 
         <div class="total-row">
           <span class="total-label">Custo total</span>
-          <span class="total-val" id="cTotal">R$ 0,00</span>
+          <span class="total-val tnum" id="cTotal">R$ 0,00</span>
         </div>
       </div>
 
       <div class="panel">
         <div class="panel-head">
-          <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg></span>
-          <h2 class="panel-title">Preco por <span class="acid">Marketplace</span></h2>
+          <div class="panel-head-left">
+            <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg></span>
+            <h2 class="panel-title">Preço por <span class="acid">Marketplace</span></h2>
+          </div>
+          <div class="seg" id="modeSeg" role="tablist" aria-label="Modo de precificação"></div>
         </div>
 
+        <div class="mk-chips" id="mkChips"></div>
+        <div class="field" id="customPriceField" style="display:none;">
+          <label class="field-label" for="customPrice">Preço de venda para testar</label>
+          <div class="input-suffix"><input class="input" type="number" id="customPrice" value="0" min="0" step="0.5" oninput="calc()" /><span class="suf">R$</span></div>
+          <p class="field-hint">Veja quanto sobra de lucro com esse preço em cada canal.</p>
+        </div>
         <div id="mkResults"></div>
-      </div>
-
-      <div class="teaser">
-        <h3>Quer mais <span class="acid">precisao?</span></h3>
-        <p>A versao completa calcula mao de obra, embalagem, impostos e compara 7 marketplaces.</p>
-        <div class="tags">
-          <span class="tag">Amazon</span>
-          <span class="tag">Magalu</span>
-          <span class="tag">Elo7</span>
-          <span class="tag">Loja propria</span>
-          <span class="tag">Mao de obra</span>
-          <span class="tag">Embalagem</span>
-        </div>
-        <p style="font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--acid); margin: 0;">Em breve</p>
       </div>
     </div>
   </div>
 
+  <!-- TABELA COMPARATIVA (Pro) -->
+  <div class="panel" style="margin-top:24px;">
+    <div class="panel-head">
+      <div class="panel-head-left">
+        <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></span>
+        <h2 class="panel-title">Tabela <span class="acid">Comparativa</span></h2>
+      </div>
+      <div id="tableActions"></div>
+    </div>
+    <div id="tableBody"></div>
+  </div>
+
+  <!-- SIMULAÇÃO MENSAL (Pro) -->
+  <div class="panel" style="margin-top:24px;">
+    <div class="panel-head"><div class="panel-head-left">
+      <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+      <h2 class="panel-title">Simulação <span class="acid">Mensal</span></h2>
+    </div></div>
+    <div id="simBody"></div>
+  </div>
+
   <footer class="app-foot">
-    <span>CalcPro 3D &middot; calculadora gratuita &middot; valores salvos no navegador</span>
+    <span>CalcPro 3D · taxas de marketplaces vigentes em <span id="vigencia"></span> · dados salvos no navegador</span>
   </footer>
 </div>
 
 <!-- Modal: completar cadastro Google -->
 <div class="modal-overlay" id="completeModal">
   <div class="modal-box">
-    <h2 class="m-title">Quase la!</h2>
+    <h2 class="m-title">Quase lá!</h2>
     <p class="m-sub">Complete seu cadastro para acessar a calculadora.</p>
     <div class="m-field">
-      <label class="m-label">Nome completo</label>
+      <label class="m-label" for="cNome">Nome completo</label>
       <input class="m-input" type="text" id="cNome" placeholder="Seu nome" />
     </div>
     <div class="m-error" id="cNomeErr">Informe seu nome</div>
     <div class="m-field">
-      <label class="m-label">WhatsApp</label>
+      <label class="m-label" for="cWhatsapp">WhatsApp</label>
       <input class="m-input" type="tel" id="cWhatsapp" placeholder="(11) 99999-9999" />
     </div>
     <div class="m-error" id="cWhatsappErr">Informe seu WhatsApp</div>
     <label class="m-consent">
       <input type="checkbox" id="cConsent" />
-      <span class="m-consent-text">Concordo em receber comunicacoes da CalcPro 3D e aceito a <a href="#">Politica de Privacidade</a>.</span>
+      <span class="m-consent-text">Concordo em receber comunicações da CalcPro 3D e aceito a <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
     </label>
     <div class="m-error" id="cConsentErr">Aceite os termos para continuar</div>
-    <button class="btn-acid" style="width:100%; margin-top: 8px;" id="btnComplete" onclick="handleComplete()">Acessar calculadora</button>
+    <button class="btn-acid btn btn-block" style="margin-top: 8px;" id="btnComplete" onclick="handleComplete()">Acessar calculadora</button>
     <div class="m-msg" id="cMsg"></div>
+  </div>
+</div>
+
+<!-- Modal: salvar peça -->
+<div class="modal-overlay" id="pieceModal">
+  <div class="modal-box">
+    <button class="m-close" aria-label="Fechar" onclick="closeSavePiece()">×</button>
+    <h2 class="m-title" id="pieceModalTitle">Salvar como peça</h2>
+    <div id="pieceModalBody"></div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="supabase-config.js"></script>
+<script src="app-core.js"></script>
 <script>
+  /* ============ Estado da página ============ */
+  let PLAN = "free";
+  let IS_PRO = false;
+  let LEAD = null;
+  let enabledMks = FREE_MK_IDS.slice();
+  let priceMode = "suggested";          // "suggested" | "custom"
+  let loadedPiece = null;               // { id, name } quando editando peça
   let _pendingGoogleUser = null;
 
+  /* ============ Auth (fluxo original preservado) ============ */
   function maskPhoneCalc(input) {
-    input.addEventListener('input', function () {
-      let v = this.value.replace(/\D/g, '').slice(0, 11);
-      if (v.length > 6) v = '(' + v.slice(0,2) + ') ' + v.slice(2,7) + '-' + v.slice(7);
-      else if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
-      else if (v.length > 0) v = '(' + v;
+    input.addEventListener("input", function () {
+      let v = this.value.replace(/\D/g, "").slice(0, 11);
+      if (v.length > 6) v = "(" + v.slice(0, 2) + ") " + v.slice(2, 7) + "-" + v.slice(7);
+      else if (v.length > 2) v = "(" + v.slice(0, 2) + ") " + v.slice(2);
+      else if (v.length > 0) v = "(" + v;
       this.value = v;
     });
   }
-  maskPhoneCalc(document.getElementById('cWhatsapp'));
+  maskPhoneCalc(document.getElementById("cWhatsapp"));
 
-  function showWelcome(nome) {
-    const span = document.getElementById('welcomeMsg');
-    const b = document.createElement('b');
-    b.textContent = nome.split(' ')[0];
-    span.textContent = 'Ola, ';
-    span.appendChild(b);
-  }
-
-  // check lead (localStorage or Supabase session)
-  (async function checkAuth() {
-    let lead = JSON.parse(localStorage.getItem('nm3d_lead') || '{}');
-
-    if (lead.nome && lead.whatsapp) {
-      showWelcome(lead.nome);
-      return;
-    }
-
+  async function boot() {
+    // Processa retorno do Google OAuth (hash token) antes de tudo
     try {
       const sb = getSupabase();
-      if (window.location.hash && window.location.hash.includes('access_token')) {
+      if (window.location.hash && window.location.hash.includes("access_token")) {
         await new Promise((resolve) => {
           const { data: { subscription } } = sb.auth.onAuthStateChange((event) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-              subscription.unsubscribe();
-              resolve();
-            }
+            if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") { subscription.unsubscribe(); resolve(); }
           });
           setTimeout(() => { subscription.unsubscribe(); resolve(); }, 5000);
         });
-        history.replaceState(null, '', window.location.pathname);
+        history.replaceState(null, "", window.location.pathname);
       }
-      const session = await getSession();
-      if (!session?.user) {
-        window.location.href = 'index.html';
-        return;
-      }
+    } catch {}
 
-      const u = session.user;
-      const hasWhatsapp = u.user_metadata?.whatsapp;
-
-      if (hasWhatsapp) {
-        lead = { nome: u.user_metadata?.full_name || u.email.split('@')[0], email: u.email, whatsapp: hasWhatsapp };
-        localStorage.setItem('nm3d_lead', JSON.stringify(lead));
-        showWelcome(lead.nome);
-        return;
-      }
-
-      _pendingGoogleUser = u;
-      document.getElementById('cNome').value = u.user_metadata?.full_name || u.user_metadata?.name || '';
-      document.getElementById('completeModal').classList.add('open');
-    } catch {
-      window.location.href = 'index.html';
+    let lead = getLead();
+    if (!(lead && lead.nome && lead.whatsapp)) {
+      try {
+        const session = await getSession();
+        if (!session?.user) { window.location.href = "index.html"; return; }
+        const u = session.user;
+        if (u.user_metadata?.whatsapp) {
+          lead = { nome: u.user_metadata?.full_name || u.email.split("@")[0], email: u.email, whatsapp: u.user_metadata.whatsapp };
+          localStorage.setItem("nm3d_lead", JSON.stringify(lead));
+        } else {
+          _pendingGoogleUser = u;
+          document.getElementById("cNome").value = u.user_metadata?.full_name || u.user_metadata?.name || "";
+          document.getElementById("completeModal").classList.add("open");
+          lead = { nome: u.email.split("@")[0], email: u.email, whatsapp: "" };
+        }
+      } catch { window.location.href = "index.html"; return; }
     }
-  })();
+
+    LEAD = lead;
+    PLAN = await getPlan();
+    IS_PRO = PLAN === "pro";
+    renderAppChrome("calculadora.html", LEAD, PLAN);
+    document.getElementById("vigencia").textContent = FEES_VIGENCIA;
+
+    initPlanGates();
+    restore();
+    loadPieceIfRequested();
+    calc();
+  }
 
   async function handleComplete() {
-    const nome = document.getElementById('cNome').value.trim();
-    const whatsapp = document.getElementById('cWhatsapp').value.trim();
-    const consent = document.getElementById('cConsent').checked;
-    const btn = document.getElementById('btnComplete');
+    const nome = document.getElementById("cNome").value.trim();
+    const whatsapp = document.getElementById("cWhatsapp").value.trim();
+    const consent = document.getElementById("cConsent").checked;
+    const btn = document.getElementById("btnComplete");
     let valid = true;
 
-    document.getElementById('cNomeErr').classList.remove('show');
-    document.getElementById('cWhatsappErr').classList.remove('show');
-    document.getElementById('cConsentErr').classList.remove('show');
-    document.getElementById('cNome').classList.remove('error');
-    document.getElementById('cWhatsapp').classList.remove('error');
-    document.getElementById('cConsent').classList.remove('error');
+    ["cNomeErr", "cWhatsappErr", "cConsentErr"].forEach((id) => document.getElementById(id).classList.remove("show"));
+    ["cNome", "cWhatsapp", "cConsent"].forEach((id) => document.getElementById(id).classList.remove("error"));
 
-    if (!nome) { document.getElementById('cNomeErr').classList.add('show'); document.getElementById('cNome').classList.add('error'); valid = false; }
-    if (whatsapp.replace(/\D/g, '').length < 10) { document.getElementById('cWhatsappErr').classList.add('show'); document.getElementById('cWhatsapp').classList.add('error'); valid = false; }
-    if (!consent) { document.getElementById('cConsentErr').classList.add('show'); document.getElementById('cConsent').classList.add('error'); valid = false; }
+    if (!nome) { document.getElementById("cNomeErr").classList.add("show"); document.getElementById("cNome").classList.add("error"); valid = false; }
+    if (whatsapp.replace(/\D/g, "").length < 10) { document.getElementById("cWhatsappErr").classList.add("show"); document.getElementById("cWhatsapp").classList.add("error"); valid = false; }
+    if (!consent) { document.getElementById("cConsentErr").classList.add("show"); document.getElementById("cConsent").classList.add("error"); valid = false; }
     if (!valid) return;
 
-    btn.textContent = 'Salvando...';
+    btn.textContent = "Salvando...";
     btn.disabled = true;
-
     try {
       await saveLead(nome, _pendingGoogleUser.email, whatsapp, new Date().toISOString());
-
       const sb = getSupabase();
       await sb.auth.updateUser({ data: { full_name: nome, whatsapp: whatsapp } });
-
-      const lead = { nome, email: _pendingGoogleUser.email, whatsapp };
-      localStorage.setItem('nm3d_lead', JSON.stringify(lead));
-
-      document.getElementById('completeModal').classList.remove('open');
-      showWelcome(nome);
+      LEAD = { nome, email: _pendingGoogleUser.email, whatsapp };
+      localStorage.setItem("nm3d_lead", JSON.stringify(LEAD));
+      document.getElementById("completeModal").classList.remove("open");
+      renderAppChrome("calculadora.html", LEAD, PLAN);
     } catch (err) {
-      const msg = document.getElementById('cMsg');
-      msg.textContent = 'Erro ao salvar: ' + (err.message || 'tente novamente');
-      msg.className = 'm-msg show fail';
+      const msg = document.getElementById("cMsg");
+      msg.textContent = "Erro ao salvar: " + (err.message || "tente novamente");
+      msg.className = "m-msg show fail";
     } finally {
-      btn.textContent = 'Acessar calculadora';
+      btn.textContent = "Acessar calculadora";
       btn.disabled = false;
     }
   }
+  document.getElementById("cWhatsapp").addEventListener("keydown", (e) => { if (e.key === "Enter") handleComplete(); });
 
-  document.getElementById('cWhatsapp').addEventListener('keydown', e => { if (e.key === 'Enter') handleComplete(); });
-
-  async function logout() {
-    localStorage.removeItem('nm3d_lead');
-    localStorage.removeItem('sb-drcerqugqdzjxxilrdab-auth-token');
-    try { await logoutUser(); } catch {}
-    window.location.href = 'index.html';
-  }
-
-  // printer database
+  /* ============ Presets ============ */
   const PRINTERS = [
-    { power: 350, cost: 1200, life: 3000 },  // 0  Creality Ender 3 V3 SE
-    { power: 350, cost: 1400, life: 3500 },  // 1  Creality Ender 3 V3
-    { power: 350, cost: 1800, life: 4000 },  // 2  Creality Ender 3 S1 Pro
-    { power: 350, cost: 2200, life: 4000 },  // 3  Creality Ender 3 V3 Plus
-    { power: 350, cost: 2500, life: 5000 },  // 4  Creality K1
-    { power: 350, cost: 3500, life: 5000 },  // 5  Creality K1 Max
-    { power: 150, cost: 1800, life: 5000 },  // 6  Bambu Lab A1 Mini
-    { power: 200, cost: 2500, life: 5000 },  // 7  Bambu Lab A1
-    { power: 350, cost: 3500, life: 6000 },  // 8  Bambu Lab P1S
-    { power: 350, cost: 6000, life: 8000 },  // 9  Bambu Lab X1 Carbon
-    { power: 400, cost: 1300, life: 3000 },  // 10 Anycubic Kobra 2
-    { power: 400, cost: 2000, life: 4000 },  // 11 Anycubic Kobra 3
-    { power: 36,  cost: 2000, life: 2000 },  // 12 Anycubic Photon Mono M5s
-    { power: 350, cost: 1500, life: 3000 },  // 13 Elegoo Neptune 4
-    { power: 350, cost: 2000, life: 4000 },  // 14 Elegoo Neptune 4 Pro
-    { power: 54,  cost: 2800, life: 2000 },  // 15 Elegoo Saturn 3 Ultra
-    { power: 500, cost: 2200, life: 4000 },  // 16 Artillery Sidewinder X4 Plus
-    { power: 350, cost: 4000, life: 6000 },  // 17 Voron 2.4 (Kit)
+    { power: 350, cost: 1200, life: 3000 }, { power: 350, cost: 1400, life: 3500 },
+    { power: 350, cost: 1800, life: 4000 }, { power: 350, cost: 2200, life: 4000 },
+    { power: 350, cost: 2500, life: 5000 }, { power: 350, cost: 3500, life: 5000 },
+    { power: 150, cost: 1800, life: 5000 }, { power: 200, cost: 2500, life: 5000 },
+    { power: 350, cost: 3500, life: 6000 }, { power: 350, cost: 6000, life: 8000 },
+    { power: 400, cost: 1300, life: 3000 }, { power: 400, cost: 2000, life: 4000 },
+    { power: 36,  cost: 2000, life: 2000 }, { power: 350, cost: 1500, life: 3000 },
+    { power: 350, cost: 2000, life: 4000 }, { power: 54,  cost: 2800, life: 2000 },
+    { power: 500, cost: 2200, life: 4000 }, { power: 350, cost: 4000, life: 6000 },
   ];
-
-  // Taxas atualizadas — março 2026
-  const MKS = [
-    {
-      id: 'shopee', label: 'Shopee', color: 'var(--mk-shopee)',
-      tiers: [
-        { max: 7.99,   comm: 0.50, fixed: 0   },
-        { max: 79.99,  comm: 0.20, fixed: 4   },
-        { max: 99.99,  comm: 0.14, fixed: 16  },
-        { max: 199.99, comm: 0.14, fixed: 20  },
-        { max: Infinity, comm: 0.14, fixed: 26 },
-      ],
-      noteFor(p) {
-        const t = this.tiers.find(t => p <= t.max);
-        return `${(t.comm*100).toFixed(0)}% comissao + R$${t.fixed.toFixed(0)} taxa fixa (faixa ate R$${t.max === Infinity ? '200+' : t.max.toFixed(0)})`;
-      }
-    },
-    {
-      id: 'ml', label: 'Mercado Livre', color: 'var(--mk-ml)',
-      tiers: [
-        { max: 79,     comm: 0.14, fixed: 6.50 },
-        { max: Infinity, comm: 0.14, fixed: 0   },
-      ],
-      noteFor(p) {
-        return p <= 79 ? '14% comissao + R$6,50 custo fixo (Classico < R$79)' : '14% comissao — sem custo fixo (Classico ≥ R$79)';
-      }
-    },
-  ];
-
-  const BRL = v => 'R$ ' + (isFinite(v) ? v : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const PCT = v => (isFinite(v) ? v : 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
 
   function onPrinter() {
-    const val = document.getElementById('printer').value;
-    if (val === 'custom') { calc(); return; }
-    const p = PRINTERS[+val];
-    if (p) {
-      document.getElementById('printerPower').value = p.power;
-      document.getElementById('printerCost').value = p.cost;
-      document.getElementById('printerLife').value = p.life;
+    const val = document.getElementById("printer").value;
+    if (val !== "custom") {
+      const p = PRINTERS[+val];
+      if (p) {
+        document.getElementById("printerPower").value = p.power;
+        document.getElementById("printerCost").value = p.cost;
+        document.getElementById("printerLife").value = p.life;
+      }
     }
     calc();
   }
-
   function onFilament() {
-    const sel = document.getElementById('filament');
+    const sel = document.getElementById("filament");
     const price = sel.options[sel.selectedIndex].dataset.price;
-    if (price) document.getElementById('filamentPrice').value = price;
+    if (price) document.getElementById("filamentPrice").value = price;
     calc();
+  }
+
+  /* ============ Gates de plano ============ */
+  function initPlanGates() {
+    // Imposto (Pro)
+    const taxInput = document.getElementById("taxRate");
+    if (IS_PRO) {
+      document.getElementById("taxProTag").style.display = "none";
+    } else {
+      taxInput.disabled = true;
+      taxInput.value = 0;
+      taxInput.title = "Disponível no plano Pro";
+      document.getElementById("taxField").style.cursor = "pointer";
+      document.getElementById("taxField").addEventListener("click", () => { if (!IS_PRO) window.location.href = "planos.html"; });
+    }
+
+    // Modo de precificação
+    const seg = document.getElementById("modeSeg");
+    seg.innerHTML =
+      '<button role="tab" id="segSuggested" onclick="setMode(\'suggested\')">Sugerido</button>' +
+      (IS_PRO
+        ? '<button role="tab" id="segCustom" onclick="setMode(\'custom\')">Meu preço</button>'
+        : '<button role="tab" id="segCustom" onclick="window.location.href=\'planos.html\'" title="Disponível no plano Pro">' + LOCK_SVG + ' Meu preço</button>');
+    updateModeSeg();
+  }
+
+  function setMode(m) { priceMode = m; updateModeSeg(); calc(); }
+  function updateModeSeg() {
+    document.getElementById("segSuggested").classList.toggle("active", priceMode === "suggested");
+    document.getElementById("segCustom").classList.toggle("active", priceMode === "custom");
+    document.getElementById("customPriceField").style.display = priceMode === "custom" && IS_PRO ? "" : "none";
+  }
+
+  function toggleMk(id) {
+    if (!IS_PRO && !FREE_MK_IDS.includes(id)) { window.location.href = "planos.html"; return; }
+    enabledMks = enabledMks.includes(id) ? enabledMks.filter((m) => m !== id) : enabledMks.concat(id);
+    calc();
+  }
+
+  function renderChips() {
+    document.getElementById("mkChips").innerHTML = MARKETPLACES.map((mk) => {
+      const locked = !IS_PRO && !FREE_MK_IDS.includes(mk.id);
+      const active = !locked && enabledMks.includes(mk.id);
+      return (
+        '<button class="mk-chip' + (active ? " active" : "") + (locked ? " locked" : "") + '" ' +
+        'aria-pressed="' + active + '" title="' + (locked ? "Disponível no plano Pro" : mk.label) + '" ' +
+        "onclick=\"toggleMk('" + mk.id + "')\">" +
+        (locked ? LOCK_SVG : '<span class="dot" style="background:' + mk.color + '"></span>') +
+        mk.label +
+        "</button>"
+      );
+    }).join("");
+  }
+
+  /* ============ Cálculo principal ============ */
+  function readState() {
+    const g = (id) => +document.getElementById(id).value || 0;
+    return {
+      filament: document.getElementById("filament").value,
+      filamentPrice: g("filamentPrice"), grams: g("grams"),
+      hours: g("hours"), minutes: g("minutes"),
+      margin: g("margin"), taxRate: IS_PRO ? g("taxRate") : 0,
+      printer: document.getElementById("printer").value,
+      printerPower: g("printerPower"), tariff: g("tariff"),
+      printerCost: g("printerCost"), printerLife: g("printerLife"),
+      failRate: g("failRate"), laborMin: g("laborMin"), laborRate: g("laborRate"),
+      packCost: g("packCost"), shipCost: g("shipCost"),
+      customPrice: g("customPrice"),
+      monthlyUnits: +((document.getElementById("monthlyUnits") || {}).value) || 30,
+      machineHours: +((document.getElementById("machineHours") || {}).value) || 200,
+    };
   }
 
   function calc() {
-    const fp = +document.getElementById('filamentPrice').value || 0;
-    const g = +document.getElementById('grams').value || 0;
-    const h = +document.getElementById('hours').value || 0;
-    const m = +document.getElementById('minutes').value || 0;
-    const margin = +document.getElementById('margin').value || 0;
-    const power = +document.getElementById('printerPower').value || 0;
-    const tariff = +document.getElementById('tariff').value || 0;
-    const pCost = +document.getElementById('printerCost').value || 0;
-    const pLife = +document.getElementById('printerLife').value || 1;
-    const failPct = +document.getElementById('failRate').value || 0;
-    const laborMin = +document.getElementById('laborMin').value || 0;
-    const laborRate = +document.getElementById('laborRate').value || 0;
-    const packCost = +document.getElementById('packCost').value || 0;
-    const shipCost = +document.getElementById('shipCost').value || 0;
+    const s = readState();
 
-    const printHours = h + m / 60;
-    const material = (fp / 1000) * g;
-    const energy = (power / 1000) * printHours * tariff;
-    const deprec = (pCost / Math.max(1, pLife)) * printHours;
-    const labor = (laborMin / 60) * laborRate;
-    const shipping = packCost + shipCost;
+    const printHours = s.hours + s.minutes / 60;
+    const material = (s.filamentPrice / 1000) * s.grams;
+    const energy = (s.printerPower / 1000) * printHours * s.tariff;
+    const deprec = (s.printerCost / Math.max(1, s.printerLife)) * printHours;
+    const labor = (s.laborMin / 60) * s.laborRate;
+    const shipping = s.packCost + s.shipCost;
     const subtotal = material + energy + deprec + labor + shipping;
-    const fail = subtotal * (failPct / 100);
+    const fail = subtotal * (s.failRate / 100);
     const total = subtotal + fail;
 
-    document.getElementById('cMaterial').textContent = BRL(material);
-    document.getElementById('cEnergy').textContent = BRL(energy);
-    document.getElementById('cDeprec').textContent = BRL(deprec);
-    document.getElementById('cLabor').textContent = BRL(labor);
-    document.getElementById('cShip').textContent = BRL(shipping);
-    document.getElementById('cFailLabel').textContent = 'Falha (' + failPct + '%)';
-    document.getElementById('cFail').textContent = BRL(fail);
-    document.getElementById('cTotal').textContent = BRL(total);
-    document.getElementById('marginVal').textContent = margin + '%';
+    document.getElementById("cMaterial").textContent = BRL(material);
+    document.getElementById("cEnergy").textContent = BRL(energy);
+    document.getElementById("cDeprec").textContent = BRL(deprec);
+    document.getElementById("cLabor").textContent = BRL(labor);
+    document.getElementById("cShip").textContent = BRL(shipping);
+    document.getElementById("cFailLabel").textContent = "Falha (" + s.failRate + "%)";
+    document.getElementById("cFail").textContent = BRL(fail);
+    document.getElementById("cTotal").textContent = BRL(total);
+    document.getElementById("marginVal").textContent = s.margin + "%";
 
-    function mkCalcPrice(mk, cost, marginPct) {
-      const target = cost * (1 + marginPct / 100);
-      for (const tier of mk.tiers) {
-        const price = (target + tier.fixed) / Math.max(0.01, 1 - tier.comm);
-        if (price <= tier.max || tier.max === Infinity) {
-          const fees = tier.comm * price + tier.fixed;
-          return { price, fees, tier };
-        }
-      }
-      const last = mk.tiers[mk.tiers.length - 1];
-      const price = (target + last.fixed) / Math.max(0.01, 1 - last.comm);
-      return { price, fees: last.comm * price + last.fixed, tier: last };
+    renderChips();
+
+    const active = MARKETPLACES.filter((mk) => enabledMks.includes(mk.id) && (IS_PRO || FREE_MK_IDS.includes(mk.id)));
+    document.getElementById("marginAlert").style.display = hasImpossibleMargin(s.taxRate, active.map((m) => m.id)) ? "" : "none";
+
+    const results = active.map((mk) => {
+      const price = priceMode === "custom" && IS_PRO ? s.customPrice : mkSuggestPrice(mk, total, s.margin, s.taxRate);
+      return mkResultAtPrice(mk, price, total, s.taxRate);
+    });
+
+    let bestId = "";
+    if (priceMode === "suggested" && results.length) {
+      bestId = results.reduce((b, r) => (r.profit > b.profit ? r : b)).id;
     }
 
-    let html = '';
-    let bestPrice = Infinity;
-    let bestId = '';
-    const results = MKS.map(mk => {
-      const { price, fees } = mkCalcPrice(mk, total, margin);
-      const profit = price - total - fees;
-      const marginPct = price > 0 ? (profit / price) * 100 : 0;
-      if (price < bestPrice) { bestPrice = price; bestId = mk.id; }
-      return { mk, price, fees, profit, marginPct };
-    });
+    // Cards
+    document.getElementById("mkResults").innerHTML = results.length === 0
+      ? '<p class="field-hint" style="text-align:center;padding:16px 0;">Selecione ao menos um marketplace acima.</p>'
+      : results.map((r) => {
+          const best = r.id === bestId;
+          return (
+            '<div class="mk-card" style="--mk-color:' + r.color + ";" + (best ? "border-color:var(--acid); box-shadow: 0 0 0 1px var(--acid-line);" : "") + '">' +
+              '<div class="mk-top"><span class="mk-name">' + r.label + (best ? ' <span class="mk-best">melhor</span>' : "") + "</span>" +
+              '<span class="mk-price tnum">' + BRL(r.price) + "</span></div>" +
+              '<div class="mk-stats">' +
+                '<div><div class="mk-stat-k">Taxas' + (r.tax > 0 ? " + imposto" : "") + '</div><div class="mk-stat-v fee tnum">' + BRL(r.fees + r.tax) + "</div></div>" +
+                '<div><div class="mk-stat-k">Lucro</div><div class="mk-stat-v tnum ' + (r.profit >= 0 ? "profit" : "neg") + '">' + BRL(r.profit) + "</div></div>" +
+                '<div><div class="mk-stat-k">Margem</div><div class="mk-stat-v tnum ' + (r.margin >= 0 ? "" : "neg") + '">' + PCT(r.margin) + "</div></div>" +
+              "</div>" +
+              '<p class="mk-note">' + r.note + "</p>" +
+            "</div>"
+          );
+        }).join("");
 
-    results.forEach(r => {
-      const best = r.mk.id === bestId;
-      const note = r.mk.noteFor(r.price);
-      html += `
-        <div class="mk-card" style="--mk-color:${r.mk.color}; ${best ? 'border-color:var(--acid); box-shadow: 0 0 0 1px var(--acid-line);' : ''}">
-          <div class="mk-top">
-            <span class="mk-name">${r.mk.label} ${best ? '<span class="mk-best">melhor</span>' : ''}</span>
-            <span class="mk-price">${BRL(r.price)}</span>
-          </div>
-          <div class="mk-stats">
-            <div><div class="mk-stat-k">Taxas</div><div class="mk-stat-v fee">${BRL(r.fees)}</div></div>
-            <div><div class="mk-stat-k">Lucro</div><div class="mk-stat-v profit">${BRL(r.profit)}</div></div>
-            <div><div class="mk-stat-k">Margem</div><div class="mk-stat-v">${PCT(r.marginPct)}</div></div>
-          </div>
-          <p class="mk-note">${note}</p>
-        </div>`;
-    });
-    document.getElementById('mkResults').innerHTML = html;
+    renderTable(results, total, bestId);
+    renderSim(results, total, s, printHours);
 
-    localStorage.setItem('nm3d_calc', JSON.stringify({
-      filament: document.getElementById('filament').value,
-      filamentPrice: fp, grams: g, hours: h, minutes: m, margin,
-      printer: document.getElementById('printer').value,
-      printerPower: power, tariff, printerCost: pCost, printerLife: pLife,
-      failRate: failPct, laborMin, laborRate, packCost, shipCost
-    }));
+    saveData("calc", { ...s, enabledMks, priceMode });
   }
 
-  (function restore() {
-    try {
-      const s = JSON.parse(localStorage.getItem('nm3d_calc') || '{}');
-      if (s.filament) document.getElementById('filament').value = s.filament;
-      if (s.filamentPrice) document.getElementById('filamentPrice').value = s.filamentPrice;
-      if (s.grams) document.getElementById('grams').value = s.grams;
-      if (s.hours !== undefined) document.getElementById('hours').value = s.hours;
-      if (s.minutes !== undefined) document.getElementById('minutes').value = s.minutes;
-      if (s.margin !== undefined) document.getElementById('margin').value = s.margin;
-      if (s.printer !== undefined) document.getElementById('printer').value = s.printer;
-      if (s.printerPower !== undefined) document.getElementById('printerPower').value = s.printerPower;
-      if (s.tariff !== undefined) document.getElementById('tariff').value = s.tariff;
-      if (s.printerCost !== undefined) document.getElementById('printerCost').value = s.printerCost;
-      if (s.printerLife !== undefined) document.getElementById('printerLife').value = s.printerLife;
-      if (s.failRate !== undefined) document.getElementById('failRate').value = s.failRate;
-      if (s.laborMin !== undefined) document.getElementById('laborMin').value = s.laborMin;
-      if (s.laborRate !== undefined) document.getElementById('laborRate').value = s.laborRate;
-      if (s.packCost !== undefined) document.getElementById('packCost').value = s.packCost;
-      if (s.shipCost !== undefined) document.getElementById('shipCost').value = s.shipCost;
-    } catch {}
-    calc();
-  })();
+  /* ============ Tabela comparativa (Pro) ============ */
+  let _lastResults = [];
+  let _lastTotal = 0;
+
+  function renderTable(results, total, bestId) {
+    _lastResults = results; _lastTotal = total;
+    const actions = document.getElementById("tableActions");
+    const body = document.getElementById("tableBody");
+
+    if (!IS_PRO) {
+      actions.innerHTML = "";
+      body.innerHTML =
+        '<a class="pro-lock" href="planos.html"><span class="lk">' + LOCK_SVG +
+        " Compare os 7 canais lado a lado — anunciar por, taxas, impostos, lucro e margem real</span>" +
+        '<span class="tag-pro">Pro</span></a>';
+      return;
+    }
+    actions.innerHTML =
+      '<div style="display:flex;gap:8px;">' +
+      '<button class="btn btn-sm" id="btnCopy" onclick="copySummary()">Copiar resumo</button>' +
+      '<button class="btn btn-sm" onclick="downloadCsv()">Baixar CSV</button></div>';
+
+    if (results.length === 0) { body.innerHTML = ""; return; }
+    body.innerHTML =
+      '<div class="table-wrap"><table class="data-table"><thead><tr>' +
+      "<th>Marketplace</th><th>Anunciar por</th><th>Taxas</th><th>Imposto</th><th>Custo prod.</th><th>Lucro</th><th>Margem real</th>" +
+      "</tr></thead><tbody>" +
+      results.map((r) =>
+        '<tr class="' + (r.id === bestId ? "best" : "") + '">' +
+        '<td style="font-family:var(--sans);font-weight:600;"><span class="cost-dot" style="background:' + r.color + '"></span>' + r.label + (r.id === bestId ? ' <span class="mk-best">melhor</span>' : "") + "</td>" +
+        '<td class="tnum">' + BRL(r.price) + "</td>" +
+        '<td class="tnum neg">' + BRL(r.fees) + "</td>" +
+        '<td class="tnum neg">' + BRL(r.tax) + "</td>" +
+        '<td class="tnum">' + BRL(total) + "</td>" +
+        '<td class="tnum ' + (r.profit >= 0 ? "pos" : "neg") + '">' + BRL(r.profit) + "</td>" +
+        '<td class="tnum ' + (r.margin >= 0 ? "pos" : "neg") + '">' + PCT(r.margin) + "</td></tr>"
+      ).join("") +
+      "</tbody></table></div>";
+  }
+
+  function copySummary() {
+    const lines = ["CalcPro 3D — custo de produção: " + BRL(_lastTotal)].concat(
+      _lastResults.map((r) => r.label + ": anunciar por " + BRL(r.price) + " | lucro " + BRL(r.profit) + " | margem " + PCT(r.margin))
+    );
+    navigator.clipboard.writeText(lines.join("\n")).then(() => {
+      const b = document.getElementById("btnCopy");
+      b.textContent = "Copiado ✓";
+      setTimeout(() => { b.textContent = "Copiar resumo"; }, 2000);
+    }).catch(() => {});
+  }
+
+  function downloadCsv() {
+    const n = (v, d = 2) => v.toFixed(d).replace(".", ",");
+    const rows = [["Marketplace", "Anunciar por", "Taxas", "Imposto", "Custo producao", "Lucro", "Margem real (%)"].join(";")]
+      .concat(_lastResults.map((r) => [r.label, n(r.price), n(r.fees), n(r.tax), n(_lastTotal), n(r.profit), n(r.margin, 1)].join(";")));
+    const blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "calcpro3d-comparativo.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /* ============ Simulação mensal (Pro) ============ */
+  let _simReady = false;
+  function renderSim(results, total, s, printHours) {
+    const body = document.getElementById("simBody");
+    if (!IS_PRO) {
+      body.innerHTML =
+        '<a class="pro-lock" href="planos.html"><span class="lk">' + LOCK_SVG +
+        " Projete faturamento e lucro mensal por canal — com capacidade real da sua impressora e alerta de gargalo</span>" +
+        '<span class="tag-pro">Pro</span></a>';
+      return;
+    }
+
+    // Controles são criados UMA vez (recriar a cada tecla derruba o foco)
+    if (!_simReady) {
+      body.innerHTML =
+        '<div class="input-row-3" style="margin-bottom:20px;align-items:end;">' +
+          '<div class="field" style="margin:0;"><label class="field-label" for="monthlyUnits">Vendas estimadas / mês</label>' +
+          '<div class="input-suffix"><input class="input" type="number" id="monthlyUnits" value="30" min="0" step="1" oninput="calc()" /><span class="suf">un</span></div></div>' +
+          '<div class="field" style="margin:0;"><label class="field-label" for="machineHours">Horas de impressora / mês</label>' +
+          '<div class="input-suffix"><input class="input" type="number" id="machineHours" value="200" min="0" step="10" oninput="calc()" /><span class="suf">h</span></div></div>' +
+          '<div class="cap-box" id="capBox"></div>' +
+        '</div>' +
+        '<div class="sim-grid" id="simGrid"></div>';
+      const saved = loadData("calc", null);
+      if (saved) {
+        if (saved.monthlyUnits !== undefined) document.getElementById("monthlyUnits").value = saved.monthlyUnits;
+        if (saved.machineHours !== undefined) document.getElementById("machineHours").value = saved.machineHours;
+      }
+      _simReady = true;
+    }
+
+    const units = +document.getElementById("monthlyUnits").value || 0;
+    const hoursAvail = +document.getElementById("machineHours").value || 0;
+    const effHours = printHours * (1 + s.failRate / 100);
+    const capacity = effHours > 0 ? Math.floor(hoursAvail / effHours) : Infinity;
+    const producible = Math.min(units, capacity);
+    const bottleneck = isFinite(capacity) && units > capacity;
+
+    const capBox = document.getElementById("capBox");
+    capBox.className = "cap-box" + (bottleneck ? " warn" : "");
+    capBox.innerHTML = "Capacidade: <b>" + (isFinite(capacity) ? capacity : "—") + " un/mês</b>" +
+      (bottleneck ? "<br>Gargalo: você vende mais do que produz. Simulando com " + producible + " un." : "");
+
+    document.getElementById("simGrid").innerHTML =
+      results.map((r) =>
+        '<div class="sim-card" style="border-left:4px solid ' + r.color + ';">' +
+          '<div class="mk-name" style="font-size:14px;margin-bottom:6px;">' + r.label + "</div>" +
+          '<div class="row"><span style="color:var(--muted);">Faturamento</span><span class="mono tnum">' + BRL(r.price * producible) + "</span></div>" +
+          '<div class="row"><span style="color:var(--muted);">Custos totais</span><span class="mono tnum" style="color:var(--danger-soft);">' + BRL((total + r.fees + r.tax) * producible) + "</span></div>" +
+          '<div class="row total"><span style="color:var(--muted);font-weight:600;">Lucro mensal</span><span class="mono tnum" style="font-weight:700;color:' + (r.profit >= 0 ? "var(--success)" : "var(--danger-soft)") + ';">' + BRL(r.profit * producible) + "</span></div>" +
+        "</div>"
+      ).join("");
+  }
+
+  /* ============ Salvar / carregar peça ============ */
+  function openSavePiece() {
+    const pieces = getPieces();
+    const modal = document.getElementById("pieceModal");
+    const body = document.getElementById("pieceModalBody");
+    const atLimit = !IS_PRO && pieces.length >= FREE_PIECE_LIMIT && !loadedPiece;
+    document.getElementById("pieceModalTitle").textContent = loadedPiece ? "Salvar peça" : "Salvar como peça";
+
+    if (atLimit) {
+      body.innerHTML =
+        '<p class="m-sub">O plano gratuito permite até ' + FREE_PIECE_LIMIT + " peças salvas. No Pro, a biblioteca é ilimitada — além de clientes e orçamentos em PDF com a sua logo.</p>" +
+        '<a class="btn btn-acid btn-block cut" href="planos.html">Conhecer o plano Pro</a>';
+    } else {
+      const defaultName = loadedPiece ? loadedPiece.name : "Peça " + document.getElementById("filament").value;
+      body.innerHTML =
+        '<div class="m-field"><label class="m-label" for="pieceName">Nome da peça</label>' +
+        '<input class="m-input" type="text" id="pieceName" value="' + esc(defaultName) + '" placeholder="Ex.: Suporte de headset" /></div>' +
+        '<div style="display:flex;gap:8px;">' +
+        (loadedPiece ? '<button class="btn" style="flex:1;" onclick="confirmSavePiece(true)"' + (!IS_PRO && pieces.length >= FREE_PIECE_LIMIT ? " disabled" : "") + ">Salvar como nova</button>" : "") +
+        '<button class="btn btn-acid" style="flex:1;" onclick="confirmSavePiece(false)">' + (loadedPiece ? "Atualizar peça" : "Salvar") + "</button></div>" +
+        (!IS_PRO ? '<p class="field-hint" style="text-align:center;margin-top:12px;">' + pieces.length + "/" + FREE_PIECE_LIMIT + " peças usadas no plano gratuito</p>" : "");
+    }
+    modal.classList.add("open");
+  }
+  function closeSavePiece() { document.getElementById("pieceModal").classList.remove("open"); }
+
+  function confirmSavePiece(asNew) {
+    const name = (document.getElementById("pieceName").value || "").trim() || "Peça sem nome";
+    const s = readState();
+    const piece = savePiece(name, s, asNew ? null : loadedPiece?.id);
+    loadedPiece = { id: piece.id, name };
+    showPieceFlag(name);
+    closeSavePiece();
+    const btn = document.getElementById("btnSavePiece");
+    btn.textContent = "Salvo ✓";
+    setTimeout(() => { btn.textContent = "Salvar peça"; }, 2000);
+  }
+
+  function showPieceFlag(name) {
+    document.getElementById("pieceFlag").style.display = "";
+    document.getElementById("pieceFlagName").textContent = name;
+  }
+
+  function applyState(s) {
+    const set = (id, v) => { if (v !== undefined && document.getElementById(id)) document.getElementById(id).value = v; };
+    set("filament", s.filament); set("filamentPrice", s.filamentPrice); set("grams", s.grams);
+    set("hours", s.hours); set("minutes", s.minutes); set("margin", s.margin);
+    set("printer", s.printer); set("printerPower", s.printerPower); set("tariff", s.tariff);
+    set("printerCost", s.printerCost); set("printerLife", s.printerLife);
+    set("failRate", s.failRate); set("laborMin", s.laborMin); set("laborRate", s.laborRate);
+    set("packCost", s.packCost); set("shipCost", s.shipCost);
+    if (IS_PRO) { set("taxRate", s.taxRate); set("customPrice", s.customPrice); }
+  }
+
+  function loadPieceIfRequested() {
+    const id = consumePieceLoad();
+    if (!id) return;
+    const piece = getPieces().find((p) => p.id === id);
+    if (!piece) return;
+    applyState(piece.inputs);
+    loadedPiece = { id: piece.id, name: piece.name };
+    showPieceFlag(piece.name);
+  }
+
+  function restore() {
+    const s = loadData("calc", null) || JSON.parse(localStorage.getItem("nm3d_calc") || "null");
+    if (!s) return;
+    applyState(s);
+    if (Array.isArray(s.enabledMks)) {
+      enabledMks = IS_PRO ? s.enabledMks : s.enabledMks.filter((id) => FREE_MK_IDS.includes(id));
+      if (enabledMks.length === 0) enabledMks = FREE_MK_IDS.slice();
+    }
+    if (s.priceMode === "custom" && IS_PRO) { priceMode = "custom"; updateModeSeg(); }
+  }
+
+  boot();
 </script>
 </body>
 </html>

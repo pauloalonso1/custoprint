@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CalcPro 3D — Planos</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="app.css" />
+<style>
+  .plans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 860px; margin: 0 auto; align-items: stretch; }
+  @media (max-width: 720px) { .plans-grid { grid-template-columns: 1fr; } }
+  .plan-card { background: var(--panel); border: 1px solid var(--line); padding: 32px 30px; display: flex; flex-direction: column; }
+  .plan-card.featured { border-color: var(--acid-line); background: linear-gradient(180deg, rgba(197,242,48,.07), transparent 55%), var(--panel); position: relative; }
+  .plan-name { font-family: var(--display); font-size: 18px; text-transform: uppercase; margin: 0 0 4px; }
+  .plan-price { font-family: var(--display); font-size: 36px; margin: 12px 0 2px; }
+  .plan-price small { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: none; letter-spacing: 0; }
+  .plan-desc { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
+  .plan-feats { list-style: none; margin: 0 0 26px; padding: 0; flex: 1; }
+  .plan-feats li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; padding: 6px 0; color: var(--ink); }
+  .plan-feats li svg { width: 15px; height: 15px; color: var(--acid); flex-shrink: 0; margin-top: 3px; }
+  .plan-feats li.off { color: var(--muted-2); }
+  .plan-feats li.off svg { color: var(--muted-2); }
+  .popular { position: absolute; top: -11px; left: 30px; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; background: var(--acid); color: #0A0E00; padding: 4px 12px; }
+  .plans-note { text-align: center; font-size: 12px; color: var(--muted-2); margin-top: 22px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="appChrome"></div>
+
+  <div class="page-head" style="justify-content:center;text-align:center;">
+    <div style="width:100%;">
+      <h1 class="page-title">Planos simples, <span class="acid">sem surpresas</span></h1>
+      <p class="page-sub">Comece grátis. Faça upgrade quando o negócio pedir.</p>
+    </div>
+  </div>
+
+  <div class="plans-grid" id="plansGrid"></div>
+  <p class="plans-note">Cancele quando quiser. Seus dados continuam salvos ao mudar de plano.</p>
+
+  <footer class="app-foot"><span>CalcPro 3D · taxas de marketplaces vigentes em <span id="vigencia"></span></span></footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="app-core.js"></script>
+<script>
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  const DASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>';
+
+  const FREE_FEATS = [
+    [true, "Calculadora completa de custos"],
+    [true, "Shopee + Mercado Livre Clássico"],
+    [true, "Até " + FREE_PIECE_LIMIT + " peças salvas"],
+    [false, "Amazon, Magalu, Elo7, ML Premium e Loja Própria"],
+    [false, "Imposto sobre a venda no cálculo"],
+    [false, "Clientes e orçamentos em PDF com sua logo"],
+  ];
+  const PRO_FEATS = [
+    [true, "Tudo do plano gratuito"],
+    [true, "7 marketplaces comparados lado a lado"],
+    [true, "Imposto sobre a venda + modo \u201Ctestar meu preço\u201D"],
+    [true, "Peças salvas ilimitadas"],
+    [true, "Cadastro de clientes"],
+    [true, "Orçamentos em PDF com a logo da sua loja"],
+    [true, "Tabela comparativa + exportação CSV"],
+    [true, "Simulação mensal com capacidade e gargalo"],
+    [true, "Suporte prioritário"],
+  ];
+
+  function feats(list) {
+    return '<ul class="plan-feats">' + list.map(([on, txt]) =>
+      '<li class="' + (on ? "" : "off") + '">' + (on ? CHECK : DASH) + "<span>" + txt + "</span></li>"
+    ).join("") + "</ul>";
+  }
+
+  function render(plan) {
+    const isPro = plan === "pro";
+    document.getElementById("plansGrid").innerHTML =
+      '<div class="plan-card cut">' +
+        '<h2 class="plan-name">Gratuito</h2>' +
+        '<p class="plan-desc">Para precificar as primeiras vendas.</p>' +
+        '<div class="plan-price">R$ 0</div>' +
+        feats(FREE_FEATS) +
+        (isPro
+          ? '<button class="btn btn-block" disabled>Plano anterior</button>'
+          : '<a class="btn btn-block cut" href="calculadora.html">Seu plano atual — abrir calculadora</a>') +
+      "</div>" +
+      '<div class="plan-card featured cut">' +
+        '<span class="popular">Popular</span>' +
+        '<h2 class="plan-name">Pro</h2>' +
+        '<p class="plan-desc">Para quem vive de impressão 3D: clientes, orçamentos e todos os canais.</p>' +
+        '<div class="plan-price">' + PRO_PRICE_LABEL.replace("/mês", "") + " <small>/mês</small></div>" +
+        feats(PRO_FEATS) +
+        (isPro
+          ? '<button class="btn btn-acid btn-block cut" disabled>Plano ativo ✓</button>'
+          : '<button class="btn btn-acid btn-block cut" id="btnPro" onclick="subscribe()">Assinar Pro</button>') +
+      "</div>";
+  }
+
+  /* >>> PONTO DE INTEGRAÇÃO DO PAGAMENTO <<<
+     Substitua o conteúdo desta função pelo redirect ao checkout
+     (Stripe / Mercado Pago). A ativação real deve acontecer no
+     webhook do gateway (ver cabeçalho de app-core.js). */
+  async function subscribe() {
+    const btn = document.getElementById("btnPro");
+    btn.textContent = "Ativando...";
+    btn.disabled = true;
+    await activatePro();
+    window.location.href = "calculadora.html";
+  }
+
+  (async function boot() {
+    const lead = await requireAuth();
+    if (!lead) return;
+    const plan = await getPlan();
+    renderAppChrome("", lead, plan);
+    document.getElementById("vigencia").textContent = FEES_VIGENCIA;
+    render(plan);
+  })();
+</script>
+</body>
+</html>

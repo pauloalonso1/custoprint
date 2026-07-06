@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CalcPro 3D — Configurações da Loja</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="app.css" />
+<style>
+  .logo-drop {
+    border: 1px dashed var(--line-2); background: var(--panel-2);
+    padding: 22px; text-align: center; cursor: pointer; transition: border-color .15s;
+  }
+  .logo-drop:hover { border-color: var(--acid-line); }
+  .logo-drop img { max-width: 220px; max-height: 90px; display: block; margin: 0 auto 12px; background: #fff; padding: 8px; }
+  .logo-drop .hint { font-size: 12px; color: var(--muted-2); }
+  .saved-flash { font-family: var(--mono); font-size: 12px; color: var(--acid); letter-spacing: .06em; text-transform: uppercase; display: none; }
+  .saved-flash.show { display: inline; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="appChrome"></div>
+
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Configurações da <span class="acid">Loja</span></h1>
+      <p class="page-sub">Esses dados e a logo aparecem nos PDFs de orçamento.</p>
+    </div>
+  </div>
+
+  <div class="body-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-head-left"><h2 class="panel-title">Identidade</h2></div></div>
+        <div class="field">
+          <label class="field-label">Logo da loja</label>
+          <div class="logo-drop" id="logoDrop" onclick="document.getElementById('logoFile').click()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('logoFile').click()}" role="button" tabindex="0" aria-label="Enviar logo da loja">
+            <span class="hint">Clique para enviar a logo (PNG ou JPG, até 400 KB)</span>
+          </div>
+          <input type="file" id="logoFile" accept="image/png,image/jpeg" style="display:none;" onchange="onLogoFile(this)" />
+          <button class="btn btn-sm btn-ghost" id="btnRemoveLogo" style="display:none;margin-top:8px;" onclick="removeLogo()">Remover logo</button>
+          <p class="field-hint" id="logoErr" style="color:var(--danger-soft);display:none;"></p>
+        </div>
+        <div class="field"><label class="field-label" for="sName">Nome da loja</label><input class="input" type="text" id="sName" placeholder="Ex.: NickMaker 3D" /></div>
+        <div class="field"><label class="field-label" for="sTagline">Slogan / descrição curta</label><input class="input" type="text" id="sTagline" placeholder="Ex.: Impressão 3D sob demanda" /></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-head-left"><h2 class="panel-title">Contato</h2></div></div>
+        <div class="input-row">
+          <div class="field"><label class="field-label" for="sDoc">CNPJ / CPF</label><input class="input" type="text" id="sDoc" /></div>
+          <div class="field"><label class="field-label" for="sPhone">Telefone / WhatsApp</label><input class="input" type="tel" id="sPhone" placeholder="(11) 99999-9999" /></div>
+        </div>
+        <div class="field"><label class="field-label" for="sEmail">E-mail</label><input class="input" type="email" id="sEmail" /></div>
+        <div class="field"><label class="field-label" for="sAddress">Endereço</label><input class="input" type="text" id="sAddress" /></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-head-left"><h2 class="panel-title">Orçamentos</h2></div></div>
+        <div class="field">
+          <label class="field-label" for="sFooter">Rodapé do PDF</label>
+          <textarea class="input" id="sFooter" rows="3"></textarea>
+          <p class="field-hint">Aparece no fim de todos os orçamentos — condições gerais, validade, garantia...</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <button class="btn btn-acid cut" onclick="save()">Salvar configurações</button>
+          <span class="saved-flash" id="savedFlash">Salvo ✓</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-head-left"><h2 class="panel-title">Plano</h2></div></div>
+        <div id="planBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-foot"><span>CalcPro 3D · dados salvos no navegador</span></footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="app-core.js"></script>
+<script>
+  let logoDataUrl = "";
+
+  function renderLogo() {
+    const drop = document.getElementById("logoDrop");
+    const btn = document.getElementById("btnRemoveLogo");
+    if (logoDataUrl) {
+      drop.innerHTML = '<img src="' + logoDataUrl + '" alt="Logo da loja" /><span class="hint">Clique para trocar</span>';
+      btn.style.display = "";
+    } else {
+      drop.innerHTML = '<span class="hint">Clique para enviar a logo (PNG ou JPG, até 400 KB)</span>';
+      btn.style.display = "none";
+    }
+  }
+
+  function onLogoFile(input) {
+    const file = input.files && input.files[0];
+    const err = document.getElementById("logoErr");
+    err.style.display = "none";
+    if (!file) return;
+    if (file.size > 400 * 1024) {
+      err.textContent = "Arquivo muito grande (" + Math.round(file.size / 1024) + " KB). Reduza para até 400 KB.";
+      err.style.display = "";
+      input.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => { logoDataUrl = reader.result; renderLogo(); };
+    reader.readAsDataURL(file);
+    input.value = "";
+  }
+
+  function removeLogo() { logoDataUrl = ""; renderLogo(); }
+
+  function fill() {
+    const s = getSettings();
+    logoDataUrl = s.logoDataUrl || "";
+    renderLogo();
+    document.getElementById("sName").value = s.name;
+    document.getElementById("sTagline").value = s.tagline;
+    document.getElementById("sDoc").value = s.doc;
+    document.getElementById("sPhone").value = s.phone;
+    document.getElementById("sEmail").value = s.email;
+    document.getElementById("sAddress").value = s.address;
+    document.getElementById("sFooter").value = s.quoteFooter;
+  }
+
+  function save() {
+    saveSettings({
+      name: document.getElementById("sName").value.trim(),
+      tagline: document.getElementById("sTagline").value.trim(),
+      doc: document.getElementById("sDoc").value.trim(),
+      phone: document.getElementById("sPhone").value.trim(),
+      email: document.getElementById("sEmail").value.trim(),
+      address: document.getElementById("sAddress").value.trim(),
+      logoDataUrl: logoDataUrl,
+      quoteFooter: document.getElementById("sFooter").value.trim(),
+    });
+    const f = document.getElementById("savedFlash");
+    f.classList.add("show");
+    setTimeout(() => f.classList.remove("show"), 2200);
+  }
+
+  async function renderPlanBox(plan) {
+    const box = document.getElementById("planBox");
+    if (plan === "pro") {
+      box.innerHTML =
+        '<p style="font-size:14px;color:var(--muted);margin:0 0 14px;">Seu plano atual é o <span class="tag-pro">Pro</span> — todos os recursos liberados.</p>' +
+        '<button class="btn btn-sm btn-ghost" onclick="downgrade()">Voltar para o plano gratuito</button>';
+    } else {
+      box.innerHTML =
+        '<p style="font-size:14px;color:var(--muted);margin:0 0 14px;">Você está no plano <b style="color:var(--ink);">gratuito</b>. Clientes, orçamentos em PDF, 7 marketplaces e mais estão no Pro.</p>' +
+        '<a class="btn btn-acid cut" href="planos.html">Conhecer o plano Pro</a>';
+    }
+  }
+
+  async function downgrade() {
+    if (!confirm("Voltar para o plano gratuito? Seus dados não serão apagados.")) return;
+    await deactivatePro();
+    window.location.reload();
+  }
+
+  (async function boot() {
+    const lead = await requireAuth();
+    if (!lead) return;
+    const plan = await getPlan();
+    renderAppChrome("configuracoes.html", lead, plan);
+    fill();
+    renderPlanBox(plan);
+  })();
+</script>
+</body>
+</html>

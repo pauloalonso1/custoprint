@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CalcPro 3D — Minhas Peças</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<div class="app">
+  <div id="appChrome"></div>
+
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Minhas <span class="acid">Peças</span></h1>
+      <p class="page-sub" id="pieceCount"></p>
+    </div>
+    <a class="btn btn-acid cut" href="calculadora.html">Nova peça na calculadora</a>
+  </div>
+
+  <div class="alert alert-warn" id="limitAlert" style="display:none;">
+    Limite do plano gratuito atingido. No <b>Pro</b> a biblioteca é ilimitada — <a href="planos.html" style="text-decoration:underline;color:inherit;">conhecer</a>.
+  </div>
+
+  <div id="listBody"></div>
+
+  <footer class="app-foot"><span>CalcPro 3D · dados salvos no navegador</span></footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="app-core.js"></script>
+<script>
+  let IS_PRO = false;
+
+  function costOf(inputs) {
+    const n = (v) => +v || 0;
+    const printHours = n(inputs.hours) + n(inputs.minutes) / 60;
+    const material = (n(inputs.filamentPrice) / 1000) * n(inputs.grams);
+    const energy = (n(inputs.printerPower) / 1000) * printHours * n(inputs.tariff);
+    const deprec = (n(inputs.printerCost) / Math.max(1, n(inputs.printerLife))) * printHours;
+    const labor = (n(inputs.laborMin) / 60) * n(inputs.laborRate);
+    const subtotal = material + energy + deprec + labor + n(inputs.packCost) + n(inputs.shipCost);
+    return subtotal * (1 + n(inputs.failRate) / 100);
+  }
+
+  function render() {
+    const pieces = getPieces();
+    const atLimit = !IS_PRO && pieces.length >= FREE_PIECE_LIMIT;
+    document.getElementById("pieceCount").textContent = IS_PRO
+      ? pieces.length + " peça(s) salva(s)"
+      : pieces.length + "/" + FREE_PIECE_LIMIT + " peças no plano gratuito";
+    document.getElementById("limitAlert").style.display = atLimit ? "" : "none";
+
+    const body = document.getElementById("listBody");
+    if (pieces.length === 0) {
+      body.innerHTML =
+        '<div class="panel"><div class="empty">' +
+        "<h3>Nenhuma peça salva ainda</h3>" +
+        "<p>Calcule o custo de uma peça e use o botão “Salvar peça” para guardá-la aqui e reutilizar depois.</p>" +
+        '<a class="btn btn-acid cut" href="calculadora.html">Abrir calculadora</a>' +
+        "</div></div>";
+      return;
+    }
+    body.innerHTML = '<div class="rec-grid">' + pieces.map((p) =>
+      '<div class="rec-card">' +
+        '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">' +
+          '<div style="min-width:0;"><h2 class="rec-title">' + esc(p.name) + "</h2>" +
+          '<div class="rec-meta">' + esc(p.inputs.filament || "") + " · " + (+p.inputs.grams || 0) + "g · " +
+            (+p.inputs.hours || 0) + "h" + (+p.inputs.minutes || 0) + "min · atualizada em " + DATE_BR(p.updatedAt) + "</div></div>" +
+          '<div style="text-align:right;flex-shrink:0;"><div class="mk-stat-k">Custo</div><div class="rec-value tnum">' + BRL(costOf(p.inputs)) + "</div></div>" +
+        "</div>" +
+        '<div class="rec-actions">' +
+          '<button class="btn btn-sm btn-acid" onclick="openPiece(\'' + p.id + '\')">Abrir na calculadora</button>' +
+          '<button class="btn btn-sm" onclick="dup(\'' + p.id + '\')"' + (atLimit ? ' disabled title="Limite do plano gratuito"' : "") + ">Duplicar</button>" +
+          '<button class="btn btn-sm btn-ghost" onclick="del(\'' + p.id + '\')">Excluir</button>' +
+        "</div>" +
+      "</div>"
+    ).join("") + "</div>";
+  }
+
+  function openPiece(id) { requestPieceLoad(id); window.location.href = "calculadora.html"; }
+  function dup(id) { duplicatePiece(id); render(); }
+  function del(id) {
+    const p = getPieces().find((x) => x.id === id);
+    if (p && confirm("Excluir a peça “" + p.name + "”?")) { deletePiece(id); render(); }
+  }
+
+  (async function boot() {
+    const lead = await requireAuth();
+    if (!lead) return;
+    const plan = await getPlan();
+    IS_PRO = plan === "pro";
+    renderAppChrome("pecas.html", lead, plan);
+    render();
+  })();
+</script>
+</body>
+</html>
