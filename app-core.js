@@ -5,8 +5,8 @@
    precificação (7 marketplaces, taxas março/2026) e navegação.
 
    >>> INTEGRAÇÃO DE PAGAMENTO (leia antes de lançar o Pro) <<<
-   A ativação do Pro hoje é local + user_metadata do Supabase.
-   Quando plugar Stripe/Mercado Pago:
+   O Pro está EM BREVE: liberado somente para ADMIN_EMAILS
+   (supabase-config.js). Quando plugar Stripe/Mercado Pago:
    1. No webhook de pagamento aprovado, grave o plano em
       app_metadata (via service role) — o cliente NÃO consegue
       editar app_metadata, diferente de user_metadata.
@@ -58,40 +58,27 @@ async function appLogout() {
   window.location.href = "index.html";
 }
 
-/* ---------- Plano Free / Pro ---------- */
+/* ---------- Plano Free / Pro ----------
+   O Pro está EM BREVE para o público: não existe mais ativação
+   self-service. Hoje o Pro é liberado apenas para os e-mails em
+   ADMIN_EMAILS (supabase-config.js) — os mesmos que acessam o
+   painel admin. Quando o plano for lançado com pagamento, a
+   ativação real deve vir do webhook do gateway gravando em
+   app_metadata (via service role) — ver comentário no topo. */
 const PRO_PRICE_LABEL = "R$ 19,90/mês";
+const PRO_COMING_SOON = true;
 const FREE_MK_IDS = ["shopee", "ml"];
 const FREE_PIECE_LIMIT = 3;
 
-function _planKey() {
-  const lead = getLead();
-  return "nm3d_plan:" + (lead?.email || "anon");
-}
-
-/** Lê o plano: user_metadata do Supabase (se logado) OU flag local. */
+/** Lê o plano: "pro" apenas para administradores (por enquanto). */
 async function getPlan() {
   try {
     const session = await getSession();
-    if (session?.user?.user_metadata?.plan === "pro") return "pro";
+    if (session?.user?.email && isAdminEmail(session.user.email)) return "pro";
   } catch {}
-  return localStorage.getItem(_planKey()) === "pro" ? "pro" : "free";
-}
-
-/** Ativa o Pro (stub do gateway — ver cabeçalho deste arquivo). */
-async function activatePro() {
-  localStorage.setItem(_planKey(), "pro");
-  try {
-    const sb = getSupabase();
-    await sb.auth.updateUser({ data: { plan: "pro", plan_activated_at: new Date().toISOString() } });
-  } catch { /* sem sessão: fica só local */ }
-}
-
-async function deactivatePro() {
-  localStorage.removeItem(_planKey());
-  try {
-    const sb = getSupabase();
-    await sb.auth.updateUser({ data: { plan: "free" } });
-  } catch {}
+  const lead = getLead();
+  if (lead?.email && isAdminEmail(lead.email)) return "pro";
+  return "free";
 }
 
 /* ---------- Storage por usuário ---------- */
@@ -335,7 +322,8 @@ function proWallHTML(title, desc) {
       '<div class="pw-icon">' + LOCK_SVG + "</div>" +
       "<h2>" + title + ' <span class="tag-pro">Pro</span></h2>' +
       "<p>" + desc + "</p>" +
-      '<a class="btn btn-acid cut" href="planos.html">Conhecer o plano Pro</a>' +
+      '<p style="font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--acid);margin:0 0 16px;">Em breve</p>' +
+      '<a class="btn cut" href="planos.html">Ver o que vem no Pro</a>' +
     "</div>"
   );
 }

@@ -468,7 +468,7 @@
     } else {
       taxInput.disabled = true;
       taxInput.value = 0;
-      taxInput.title = "Disponível no plano Pro";
+      taxInput.title = "Pro — em breve";
       document.getElementById("taxField").style.cursor = "pointer";
       document.getElementById("taxField").addEventListener("click", () => { if (!IS_PRO) window.location.href = "planos.html"; });
     }
@@ -479,7 +479,7 @@
       '<button role="tab" id="segSuggested" onclick="setMode(\'suggested\')">Sugerido</button>' +
       (IS_PRO
         ? '<button role="tab" id="segCustom" onclick="setMode(\'custom\')">Meu preço</button>'
-        : '<button role="tab" id="segCustom" onclick="window.location.href=\'planos.html\'" title="Disponível no plano Pro">' + LOCK_SVG + ' Meu preço</button>');
+        : '<button role="tab" id="segCustom" onclick="window.location.href=\'planos.html\'" title="Pro — em breve">' + LOCK_SVG + ' Meu preço</button>');
     updateModeSeg();
   }
 
@@ -502,7 +502,7 @@
       const active = !locked && enabledMks.includes(mk.id);
       return (
         '<button class="mk-chip' + (active ? " active" : "") + (locked ? " locked" : "") + '" ' +
-        'aria-pressed="' + active + '" title="' + (locked ? "Disponível no plano Pro" : mk.label) + '" ' +
+        'aria-pressed="' + active + '" title="' + (locked ? "Pro — em breve" : mk.label) + '" ' +
         "onclick=\"toggleMk('" + mk.id + "')\">" +
         (locked ? LOCK_SVG : '<span class="dot" style="background:' + mk.color + '"></span>') +
         mk.label +
@@ -720,7 +720,7 @@
     if (atLimit) {
       body.innerHTML =
         '<p class="m-sub">O plano gratuito permite até ' + FREE_PIECE_LIMIT + " peças salvas. No Pro, a biblioteca é ilimitada — além de clientes e orçamentos em PDF com a sua logo.</p>" +
-        '<a class="btn btn-acid btn-block cut" href="planos.html">Conhecer o plano Pro</a>';
+        '<a class="btn btn-block cut" href="planos.html">Ver o que vem no Pro (em breve)</a>';
     } else {
       const defaultName = loadedPiece ? loadedPiece.name : "Peça " + document.getElementById("filament").value;
       body.innerHTML =

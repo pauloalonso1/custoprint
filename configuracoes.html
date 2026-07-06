@@ -154,19 +154,12 @@
     const box = document.getElementById("planBox");
     if (plan === "pro") {
       box.innerHTML =
-        '<p style="font-size:14px;color:var(--muted);margin:0 0 14px;">Seu plano atual é o <span class="tag-pro">Pro</span> — todos os recursos liberados.</p>' +
-        '<button class="btn btn-sm btn-ghost" onclick="downgrade()">Voltar para o plano gratuito</button>';
+        '<p style="font-size:14px;color:var(--muted);margin:0;">Seu plano é o <span class="tag-pro">Pro</span> — acesso de administrador, todos os recursos liberados.</p>';
     } else {
       box.innerHTML =
-        '<p style="font-size:14px;color:var(--muted);margin:0 0 14px;">Você está no plano <b style="color:var(--ink);">gratuito</b>. Clientes, orçamentos em PDF, 7 marketplaces e mais estão no Pro.</p>' +
-        '<a class="btn btn-acid cut" href="planos.html">Conhecer o plano Pro</a>';
+        '<p style="font-size:14px;color:var(--muted);margin:0 0 14px;">Você está no plano <b style="color:var(--ink);">gratuito</b>. O Pro — clientes, orçamentos em PDF, 7 marketplaces e mais — chega <b style="color:var(--acid);">em breve</b>.</p>' +
+        '<a class="btn cut" href="planos.html">Ver o que vem no Pro</a>';
     }
-  }
-
-  async function downgrade() {
-    if (!confirm("Voltar para o plano gratuito? Seus dados não serão apagados.")) return;
-    await deactivatePro();
-    window.location.reload();
   }
 
   (async function boot() {

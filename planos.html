@@ -34,12 +34,12 @@
   <div class="page-head" style="justify-content:center;text-align:center;">
     <div style="width:100%;">
       <h1 class="page-title">Planos simples, <span class="acid">sem surpresas</span></h1>
-      <p class="page-sub">Comece grátis. Faça upgrade quando o negócio pedir.</p>
+      <p class="page-sub">Comece grátis. O plano Pro chega em breve.</p>
     </div>
   </div>
 
   <div class="plans-grid" id="plansGrid"></div>
-  <p class="plans-note">Cancele quando quiser. Seus dados continuam salvos ao mudar de plano.</p>
+  <p class="plans-note">O plano Pro será liberado em breve. Tudo que você salvar no plano gratuito continua com você.</p>
 
   <footer class="app-foot"><span>CalcPro 3D · taxas de marketplaces vigentes em <span id="vigencia"></span></span></footer>
 </div>
@@ -90,28 +90,21 @@
           : '<a class="btn btn-block cut" href="calculadora.html">Seu plano atual — abrir calculadora</a>') +
       "</div>" +
       '<div class="plan-card featured cut">' +
-        '<span class="popular">Popular</span>' +
+        '<span class="popular">Em breve</span>' +
         '<h2 class="plan-name">Pro</h2>' +
         '<p class="plan-desc">Para quem vive de impressão 3D: clientes, orçamentos e todos os canais.</p>' +
-        '<div class="plan-price">' + PRO_PRICE_LABEL.replace("/mês", "") + " <small>/mês</small></div>" +
+        '<div class="plan-price">Em breve <small>preço a anunciar</small></div>' +
         feats(PRO_FEATS) +
         (isPro
-          ? '<button class="btn btn-acid btn-block cut" disabled>Plano ativo ✓</button>'
-          : '<button class="btn btn-acid btn-block cut" id="btnPro" onclick="subscribe()">Assinar Pro</button>') +
+          ? '<button class="btn btn-acid btn-block cut" disabled>Plano ativo ✓ (administrador)</button>'
+          : '<button class="btn btn-block cut" disabled title="O plano Pro ainda não está disponível">Disponível em breve</button>') +
       "</div>";
   }
 
-  /* >>> PONTO DE INTEGRAÇÃO DO PAGAMENTO <<<
-     Substitua o conteúdo desta função pelo redirect ao checkout
+  /* >>> PONTO DE INTEGRAÇÃO DO PAGAMENTO (quando o Pro lançar) <<<
+     Reative aqui um botão "Assinar Pro" apontando para o checkout
      (Stripe / Mercado Pago). A ativação real deve acontecer no
      webhook do gateway (ver cabeçalho de app-core.js). */
-  async function subscribe() {
-    const btn = document.getElementById("btnPro");
-    btn.textContent = "Ativando...";
-    btn.disabled = true;
-    await activatePro();
-    window.location.href = "calculadora.html";
-  }
 
   (async function boot() {
     const lead = await requireAuth();

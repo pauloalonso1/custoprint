@@ -53,6 +53,17 @@
 
    ============================================================ */
 
+/* ---------- Administradores ----------
+   E-mails com acesso ao painel admin E ao plano Pro (que está
+   "em breve" para o público). Edite esta lista para liberar
+   acesso a novos administradores. Compare sempre em minúsculas. */
+const ADMIN_EMAILS = [
+  'pauloa65@gmail.com',
+];
+function isAdminEmail(email) {
+  return ADMIN_EMAILS.includes(String(email || '').trim().toLowerCase());
+}
+
 const SUPABASE_URL = 'https://drcerqugqdzjxxilrdab.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyY2VycXVncWR6anh4aWxyZGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNzk1MzcsImV4cCI6MjA5NzY1NTUzN30.9cT7QsqLucWDtLimMokUgNsZjTt4k41APEvigkd70E8';
 

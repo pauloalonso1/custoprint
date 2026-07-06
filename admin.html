@@ -242,6 +242,7 @@
     try {
       const session = await getSession();
       if (session) {
+        if (!isAdminEmail(session.user?.email)) { await logoutUser(); return; }
         showDash();
         loadLeads();
       }
@@ -267,10 +268,14 @@
 
     try {
       await signInEmail(email, pass);
+      if (!isAdminEmail(email)) {
+        await logoutUser();
+        throw Object.assign(new Error('forbidden'), { forbidden: true });
+      }
       showDash();
       loadLeads();
     } catch (err) {
-      errEl.textContent = 'E-mail ou senha incorretos';
+      errEl.textContent = err.forbidden ? 'Acesso restrito a administradores' : 'E-mail ou senha incorretos';
       errEl.classList.add('show');
       btn.disabled = false;
       btn.textContent = 'Entrar';
