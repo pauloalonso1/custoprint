@@ -150,6 +150,7 @@ select.input { appearance: none; cursor: pointer; background-image: url("data:im
 .mk-chip:hover { border-color: var(--acid-line); }
 .mk-chip.locked { border-style: dashed; }
 .mk-chip.locked:hover { color: var(--acid); }
+.mk-chip.locked svg { width: 12px; height: 12px; flex-shrink: 0; }
 
 /* ---------- Cards de marketplace / listas ---------- */
 .mk-card {
@@ -275,6 +276,7 @@ select.input { appearance: none; cursor: pointer; background-image: url("data:im
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
   padding: 7px 14px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px;
 }
+.seg button svg { width: 12px; height: 12px; flex-shrink: 0; }
 .seg button.active { background: var(--acid); color: #0A0E00; font-weight: 600; }
 
 .app-foot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); text-align: center; font-size: 12px; color: var(--muted-2); }
