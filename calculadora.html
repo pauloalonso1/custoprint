@@ -585,6 +585,9 @@
     document.getElementById("cFail").textContent = BRL(fail);
     document.getElementById("cTotal").textContent = BRL(total);
     document.getElementById("marginVal").textContent = s.margin + "%";
+    const marginEl = document.getElementById("margin");
+    const fillPct = Math.min(100, (s.margin / 150) * 100);
+    marginEl.style.background = "linear-gradient(90deg, var(--acid) " + fillPct + "%, rgba(255,255,255,.16) " + fillPct + "%)";
 
     renderChips();
 
