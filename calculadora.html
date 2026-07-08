@@ -188,11 +188,36 @@
             <div class="input-suffix"><input class="input" type="number" id="packCost" value="0" min="0" step="0.50" oninput="calc()" /><span class="suf">R$</span></div>
           </div>
           <div class="field">
-            <label class="field-label" for="shipCost">Frete / unidade</label>
+            <label class="field-label" for="weightG">Peso com embalagem</label>
+            <div class="input-suffix"><input class="input" type="number" id="weightG" value="300" min="0" step="10" oninput="calc()" /><span class="suf">g</span></div>
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="field">
+            <label class="field-label" for="mlFreteMode">Frete do Mercado Livre</label>
+            <select class="input" id="mlFreteMode" onchange="calc()">
+              <option value="auto">Automático — tabela Envios ML 2026</option>
+              <option value="manual">Manual (usar frete/unidade)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="shipCost">Frete / unidade (demais canais)</label>
             <div class="input-suffix"><input class="input" type="number" id="shipCost" value="0" min="0" step="0.50" oninput="calc()" /><span class="suf">R$</span></div>
           </div>
         </div>
-        <p class="field-hint">Caixa, plástico bolha, etiqueta, fita e frete subsidiado por unidade.</p>
+        <p class="field-hint">No ML o frete é descontado em toda venda (tabela por peso × faixa de preço, reputação verde) — frete grátis obrigatório a partir de R$79. Nos demais canais usamos o frete manual.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-head-left">
+          <span class="panel-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4h15L21 9M3 9v11h18V9M3 9h18"/></svg></span>
+          <h2 class="panel-title">Mercado <span class="acid">Livre</span></h2>
+        </div></div>
+        <div class="field">
+          <label class="field-label" for="mlCat">Categoria do anúncio</label>
+          <select class="input" id="mlCat" onchange="calc()"></select>
+          <p class="field-hint" id="mlCatHint"></p>
+        </div>
       </div>
 
       <div class="panel">
@@ -231,7 +256,7 @@
           <li><span><span class="cost-dot" style="background:var(--cost-energy)"></span>Energia</span><span class="cost-val tnum" id="cEnergy">R$ 0,00</span></li>
           <li><span><span class="cost-dot" style="background:var(--cost-deprec)"></span>Depreciação</span><span class="cost-val tnum" id="cDeprec">R$ 0,00</span></li>
           <li><span><span class="cost-dot" style="background:var(--cost-labor)"></span>Mão de obra</span><span class="cost-val tnum" id="cLabor">R$ 0,00</span></li>
-          <li><span><span class="cost-dot" style="background:var(--cost-ship)"></span>Embalagem + Envio</span><span class="cost-val tnum" id="cShip">R$ 0,00</span></li>
+          <li><span><span class="cost-dot" style="background:var(--cost-ship)"></span>Embalagem</span><span class="cost-val tnum" id="cShip">R$ 0,00</span></li>
           <li><span><span class="cost-dot" style="background:var(--cost-fail)"></span><span id="cFailLabel">Falha (5%)</span></span><span class="cost-val tnum" id="cFail">R$ 0,00</span></li>
         </ul>
 
@@ -385,6 +410,10 @@
     renderAppChrome("calculadora.html", LEAD, PLAN);
     document.getElementById("vigencia").textContent = FEES_VIGENCIA;
 
+    document.getElementById("mlCat").innerHTML = ML_CATEGORIES.map((c) =>
+      '<option value="' + c.id + '">' + esc(c.label) + " — " + c.classic + "% / " + c.premium + "%</option>"
+    ).join("");
+
     initPlanGates();
     restore();
     loadPieceIfRequested();
@@ -523,7 +552,9 @@
       printerPower: g("printerPower"), tariff: g("tariff"),
       printerCost: g("printerCost"), printerLife: g("printerLife"),
       failRate: g("failRate"), laborMin: g("laborMin"), laborRate: g("laborRate"),
-      packCost: g("packCost"), shipCost: g("shipCost"),
+      packCost: g("packCost"), shipCost: g("shipCost"), weightG: g("weightG"),
+      mlCat: document.getElementById("mlCat").value || "casa",
+      mlFreteMode: document.getElementById("mlFreteMode").value || "auto",
       customPrice: g("customPrice"),
       monthlyUnits: +((document.getElementById("monthlyUnits") || {}).value) || 30,
       machineHours: +((document.getElementById("machineHours") || {}).value) || 200,
@@ -533,12 +564,14 @@
   function calc() {
     const s = readState();
 
+    setMlContext({ catId: s.mlCat, weightKg: s.weightG / 1000, freteAuto: s.mlFreteMode !== "manual" });
+
     const printHours = s.hours + s.minutes / 60;
     const material = (s.filamentPrice / 1000) * s.grams;
     const energy = (s.printerPower / 1000) * printHours * s.tariff;
     const deprec = (s.printerCost / Math.max(1, s.printerLife)) * printHours;
     const labor = (s.laborMin / 60) * s.laborRate;
-    const shipping = s.packCost + s.shipCost;
+    const shipping = s.packCost; // frete agora é custo por canal (ver cards)
     const subtotal = material + energy + deprec + labor + shipping;
     const fail = subtotal * (s.failRate / 100);
     const total = subtotal + fail;
@@ -558,9 +591,13 @@
     const active = MARKETPLACES.filter((mk) => enabledMks.includes(mk.id) && (IS_PRO || FREE_MK_IDS.includes(mk.id)));
     document.getElementById("marginAlert").style.display = hasImpossibleMargin(s.taxRate, active.map((m) => m.id)) ? "" : "none";
 
+    const cat = mlCat();
+    document.getElementById("mlCatHint").textContent =
+      "Clássico " + cat.classic + "% · Premium " + cat.premium + "% — média da categoria; confira a taxa exata no seu anúncio.";
+
     const results = active.map((mk) => {
-      const price = priceMode === "custom" && IS_PRO ? s.customPrice : mkSuggestPrice(mk, total, s.margin, s.taxRate);
-      return mkResultAtPrice(mk, price, total, s.taxRate);
+      const price = priceMode === "custom" && IS_PRO ? s.customPrice : mkSuggestPrice(mk, total, s.margin, s.taxRate, s.shipCost);
+      return mkResultAtPrice(mk, price, total, s.taxRate, s.shipCost);
     });
 
     let bestId = "";
@@ -579,6 +616,7 @@
               '<span class="mk-price tnum">' + BRL(r.price) + "</span></div>" +
               '<div class="mk-stats">' +
                 '<div><div class="mk-stat-k">Taxas' + (r.tax > 0 ? " + imposto" : "") + '</div><div class="mk-stat-v fee tnum">' + BRL(r.fees + r.tax) + "</div></div>" +
+                (r.ship > 0 ? '<div><div class="mk-stat-k">Frete</div><div class="mk-stat-v fee tnum">' + BRL(r.ship) + "</div></div>" : "") +
                 '<div><div class="mk-stat-k">Lucro</div><div class="mk-stat-v tnum ' + (r.profit >= 0 ? "profit" : "neg") + '">' + BRL(r.profit) + "</div></div>" +
                 '<div><div class="mk-stat-k">Margem</div><div class="mk-stat-v tnum ' + (r.margin >= 0 ? "" : "neg") + '">' + PCT(r.margin) + "</div></div>" +
               "</div>" +
@@ -618,13 +656,14 @@
     if (results.length === 0) { body.innerHTML = ""; return; }
     body.innerHTML =
       '<div class="table-wrap"><table class="data-table"><thead><tr>' +
-      "<th>Marketplace</th><th>Anunciar por</th><th>Taxas</th><th>Imposto</th><th>Custo prod.</th><th>Lucro</th><th>Margem real</th>" +
+      "<th>Marketplace</th><th>Anunciar por</th><th>Taxas</th><th>Frete</th><th>Imposto</th><th>Custo prod.</th><th>Lucro</th><th>Margem real</th>" +
       "</tr></thead><tbody>" +
       results.map((r) =>
         '<tr class="' + (r.id === bestId ? "best" : "") + '">' +
         '<td style="font-family:var(--sans);font-weight:600;"><span class="cost-dot" style="background:' + r.color + '"></span>' + r.label + (r.id === bestId ? ' <span class="mk-best">melhor</span>' : "") + "</td>" +
         '<td class="tnum">' + BRL(r.price) + "</td>" +
         '<td class="tnum neg">' + BRL(r.fees) + "</td>" +
+        '<td class="tnum neg">' + BRL(r.ship) + "</td>" +
         '<td class="tnum neg">' + BRL(r.tax) + "</td>" +
         '<td class="tnum">' + BRL(total) + "</td>" +
         '<td class="tnum ' + (r.profit >= 0 ? "pos" : "neg") + '">' + BRL(r.profit) + "</td>" +
@@ -635,7 +674,7 @@
 
   function copySummary() {
     const lines = ["CalcPro 3D — custo de produção: " + BRL(_lastTotal)].concat(
-      _lastResults.map((r) => r.label + ": anunciar por " + BRL(r.price) + " | lucro " + BRL(r.profit) + " | margem " + PCT(r.margin))
+      _lastResults.map((r) => r.label + ": anunciar por " + BRL(r.price) + (r.ship > 0 ? " | frete " + BRL(r.ship) : "") + " | lucro " + BRL(r.profit) + " | margem " + PCT(r.margin))
     );
     navigator.clipboard.writeText(lines.join("\n")).then(() => {
       const b = document.getElementById("btnCopy");
@@ -646,9 +685,9 @@
 
   function downloadCsv() {
     const n = (v, d = 2) => v.toFixed(d).replace(".", ",");
-    const rows = [["Marketplace", "Anunciar por", "Taxas", "Imposto", "Custo producao", "Lucro", "Margem real (%)"].join(";")]
-      .concat(_lastResults.map((r) => [r.label, n(r.price), n(r.fees), n(r.tax), n(_lastTotal), n(r.profit), n(r.margin, 1)].join(";")));
-    const blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
+    const rows = [["Marketplace", "Anunciar por", "Taxas", "Frete", "Imposto", "Custo producao", "Lucro", "Margem real (%)"].join(";")]
+      .concat(_lastResults.map((r) => [r.label, n(r.price), n(r.fees), n(r.ship), n(r.tax), n(_lastTotal), n(r.profit), n(r.margin, 1)].join(";")));
+    const blob = new Blob(["﻿" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = "calcpro3d-comparativo.csv"; a.click();
@@ -703,7 +742,7 @@
         '<div class="sim-card" style="border-left:4px solid ' + r.color + ';">' +
           '<div class="mk-name" style="font-size:14px;margin-bottom:6px;">' + r.label + "</div>" +
           '<div class="row"><span style="color:var(--muted);">Faturamento</span><span class="mono tnum">' + BRL(r.price * producible) + "</span></div>" +
-          '<div class="row"><span style="color:var(--muted);">Custos totais</span><span class="mono tnum" style="color:var(--danger-soft);">' + BRL((total + r.fees + r.tax) * producible) + "</span></div>" +
+          '<div class="row"><span style="color:var(--muted);">Custos totais</span><span class="mono tnum" style="color:var(--danger-soft);">' + BRL((total + r.fees + r.ship + r.tax) * producible) + "</span></div>" +
           '<div class="row total"><span style="color:var(--muted);font-weight:600;">Lucro mensal</span><span class="mono tnum" style="font-weight:700;color:' + (r.profit >= 0 ? "var(--success)" : "var(--danger-soft)") + ';">' + BRL(r.profit * producible) + "</span></div>" +
         "</div>"
       ).join("");
@@ -759,7 +798,8 @@
     set("printer", s.printer); set("printerPower", s.printerPower); set("tariff", s.tariff);
     set("printerCost", s.printerCost); set("printerLife", s.printerLife);
     set("failRate", s.failRate); set("laborMin", s.laborMin); set("laborRate", s.laborRate);
-    set("packCost", s.packCost); set("shipCost", s.shipCost);
+    set("packCost", s.packCost); set("shipCost", s.shipCost); set("weightG", s.weightG);
+    set("mlCat", s.mlCat); set("mlFreteMode", s.mlFreteMode);
     if (IS_PRO) { set("taxRate", s.taxRate); set("customPrice", s.customPrice); }
   }
 

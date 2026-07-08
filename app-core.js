@@ -186,6 +186,90 @@ function consumeQuoteEdit() {
 /* ---------- Motor de precificação (taxas março/2026) ---------- */
 const FEES_VIGENCIA = "março/2026";
 
+/* ----- Mercado Livre: comissão por categoria (referência 2026) -----
+   Valores médios por categoria (Clássico / Premium). Subcategorias
+   variam ±1pp — o hint na UI orienta conferir o anúncio. */
+const ML_CATEGORIES = [
+  { id: "casa",        label: "Casa, Móveis e Decoração",    classic: 13,   premium: 18 },
+  { id: "brinquedos",  label: "Brinquedos e Hobbies",        classic: 13.5, premium: 18.5 },
+  { id: "veiculos",    label: "Acessórios para Veículos",    classic: 11.5, premium: 16.5 },
+  { id: "eletronicos", label: "Eletrônicos, Áudio e Vídeo",  classic: 12,   premium: 17 },
+  { id: "informatica", label: "Informática",                 classic: 12,   premium: 17 },
+  { id: "ferramentas", label: "Ferramentas",                 classic: 12.5, premium: 17.5 },
+  { id: "esporte",     label: "Esporte e Lazer",             classic: 13,   premium: 18 },
+  { id: "beleza",      label: "Beleza e Cuidados Pessoais",  classic: 13.5, premium: 18.5 },
+  { id: "saude",       label: "Saúde",                       classic: 13.5, premium: 18.5 },
+  { id: "eletrodom",   label: "Eletrodomésticos",            classic: 12.5, premium: 17.5 },
+  { id: "moda",        label: "Moda",                        classic: 14,   premium: 19 },
+  { id: "outra",       label: "Outra categoria",             classic: 14,   premium: 18 },
+];
+
+/* Contexto do ML usado pelo motor (categoria + peso p/ frete).
+   As páginas atualizam via setMlContext() antes de calcular. */
+let ML_CTX = { catId: "casa", weightKg: 0.3, freteAuto: true };
+function setMlContext(partial) { ML_CTX = { ...ML_CTX, ...partial }; }
+function mlCat() { return ML_CATEGORIES.find((c) => c.id === ML_CTX.catId) || ML_CATEGORIES[0]; }
+
+/* ----- Custo fixo por unidade do ML (2026) ----- */
+function mlFixedCost(price) {
+  if (price >= 79) return 0;
+  if (price >= 20) return 6.00;
+  if (price >= 12.50) return 5.50;
+  return price * 0.5; // abaixo de R$12,50: máx. metade do preço
+}
+
+/* ----- Envios ML 2026 (reputação verde / sem reputação) -----
+   Fonte: mercadolivre.com.br/ajuda/40538. Custo por peso (com
+   embalagem) × faixa de preço do anúncio. Aplica-se a toda venda;
+   ≥ R$79 o frete grátis rápido é obrigatório. */
+const ML_SHIP_BANDS = [18.99, 48.99, 78.99, 99.99, 119.99, 149.99, 199.99, Infinity];
+const ML_SHIP_TABLE = [
+  [0.3,  [5.65, 6.55, 7.75, 12.35, 14.35, 16.45, 18.45, 20.95]],
+  [0.5,  [5.95, 6.65, 7.85, 13.25, 15.45, 17.65, 19.85, 22.55]],
+  [1,    [6.05, 6.75, 7.95, 13.85, 16.15, 18.45, 20.75, 23.65]],
+  [1.5,  [6.15, 6.85, 8.05, 14.15, 16.45, 18.85, 21.15, 24.65]],
+  [2,    [6.25, 6.95, 8.15, 14.45, 16.85, 19.25, 21.65, 24.65]],
+  [3,    [6.35, 7.95, 8.55, 15.75, 18.35, 21.05, 23.65, 26.25]],
+  [4,    [6.45, 8.15, 8.95, 17.05, 19.85, 22.65, 25.55, 28.35]],
+  [5,    [6.55, 8.35, 9.75, 18.45, 21.55, 24.65, 27.75, 30.75]],
+  [6,    [6.65, 8.55, 9.95, 25.45, 28.55, 32.65, 35.75, 39.75]],
+  [7,    [6.75, 8.75, 10.15, 27.05, 31.05, 36.05, 40.05, 44.05]],
+  [8,    [6.85, 8.95, 10.35, 28.85, 33.65, 38.45, 43.25, 48.05]],
+  [9,    [6.95, 9.15, 10.55, 29.65, 34.55, 39.55, 44.45, 49.35]],
+  [11,   [7.05, 9.55, 10.95, 41.25, 48.05, 54.95, 61.75, 68.65]],
+  [13,   [7.15, 9.95, 11.35, 42.15, 49.25, 56.25, 63.25, 70.25]],
+  [15,   [7.25, 10.15, 11.55, 45.05, 52.45, 59.95, 67.45, 74.95]],
+  [17,   [7.35, 10.35, 11.75, 48.55, 56.05, 63.55, 70.75, 78.65]],
+  [20,   [7.45, 10.55, 11.95, 54.75, 63.85, 72.95, 82.05, 91.15]],
+  [25,   [7.65, 10.95, 12.15, 64.05, 75.05, 84.75, 95.35, 105.95]],
+  [30,   [7.75, 11.15, 12.35, 65.95, 75.45, 85.55, 96.25, 106.95]],
+  [Infinity, [7.85, 11.35, 12.55, 67.75, 78.95, 88.95, 99.15, 107.05]],
+];
+
+/** Custo de envio do ML para o vendedor (peso em kg, preço do anúncio). */
+function mlShippingCost(weightKg, price) {
+  if (!weightKg || weightKg <= 0 || !price || price <= 0) return 0;
+  const row = ML_SHIP_TABLE.find((r) => weightKg <= r[0]) || ML_SHIP_TABLE[ML_SHIP_TABLE.length - 1];
+  let col = ML_SHIP_BANDS.findIndex((b) => price <= b);
+  if (col < 0) col = ML_SHIP_BANDS.length - 1;
+  let cost = row[1][col];
+  if (price < 19) cost = Math.min(cost, price / 2);
+  return cost;
+}
+
+function _mlShipAt(price, manualShip) {
+  return ML_CTX.freteAuto ? mlShippingCost(ML_CTX.weightKg, price) : (manualShip || 0);
+}
+function _mlNote(pct, price) {
+  let n = pct + "% comissão (" + mlCat().label + ")";
+  n += price < 79 ? " + custo fixo " + BRL(mlFixedCost(price)) : " · frete grátis obrigatório (≥ R$79)";
+  if (ML_CTX.freteAuto) {
+    const ship = mlShippingCost(ML_CTX.weightKg, price);
+    if (ship > 0) n += " · frete tabela ML: " + BRL(ship);
+  }
+  return n;
+}
+
 const MARKETPLACES = [
   {
     id: "shopee", label: "Shopee", color: "var(--mk-shopee)",
@@ -203,23 +287,17 @@ const MARKETPLACES = [
   },
   {
     id: "ml", label: "Mercado Livre (Clássico)", color: "var(--mk-ml)",
-    tiers: [
-      { min: 0, max: 78.99, comm: 0.14, fixed: 6.50 },
-      { min: 79, max: Infinity, comm: 0.14, fixed: 0 },
-    ],
-    noteFor(p) {
-      return p < 79 ? "14% comissão + R$6,50 custo fixo (< R$79)" : "14% comissão — sem custo fixo (≥ R$79)";
-    },
+    commAt: () => mlCat().classic / 100,
+    fixedAt: mlFixedCost,
+    shipAt: _mlShipAt,
+    noteFor(p) { return _mlNote(mlCat().classic, p); },
   },
   {
     id: "ml_premium", label: "Mercado Livre (Premium)", color: "var(--mk-ml-prem)",
-    tiers: [
-      { min: 0, max: 78.99, comm: 0.18, fixed: 6.50 },
-      { min: 79, max: Infinity, comm: 0.18, fixed: 0 },
-    ],
-    noteFor(p) {
-      return p < 79 ? "18% comissão + R$6,50 custo fixo (< R$79)" : "18% comissão — parcelamento sem juros (≥ R$79)";
-    },
+    commAt: () => mlCat().premium / 100,
+    fixedAt: mlFixedCost,
+    shipAt: _mlShipAt,
+    noteFor(p) { return _mlNote(mlCat().premium, p) + (p >= 79 ? " · parcelamento sem juros" : ""); },
   },
   {
     id: "amazon", label: "Amazon", color: "var(--mk-amazon)",
@@ -243,37 +321,50 @@ const MARKETPLACES = [
   },
 ];
 
-/** Preço sugerido para entregar a margem desejada (com imposto). */
-function mkSuggestPrice(mk, totalCost, marginPct, taxPct) {
+/* Acessores genéricos: marketplaces com tiers estáticos ou funções dinâmicas. */
+function _tierFor(mk, price) {
+  return mk.tiers.find((t) => price >= t.min && price <= t.max) || mk.tiers[mk.tiers.length - 1];
+}
+function mkCommAt(mk, price) { return mk.commAt ? mk.commAt(price) : _tierFor(mk, price).comm; }
+function mkFixedAt(mk, price) { return mk.fixedAt ? mk.fixedAt(price) : _tierFor(mk, price).fixed; }
+function mkShipAt(mk, price, manualShip) { return mk.shipAt ? mk.shipAt(price, manualShip || 0) : (manualShip || 0); }
+
+/** Preço sugerido para entregar a margem desejada (com imposto e frete do canal).
+    Iteração de ponto fixo: comissão/custo fixo/frete dependem da faixa de preço. */
+function mkSuggestPrice(mk, totalCost, marginPct, taxPct, manualShip) {
   const target = totalCost * (1 + marginPct / 100);
   const tax = (taxPct || 0) / 100;
-  for (const tier of mk.tiers) {
-    const denom = 1 - tier.comm - tax;
-    if (denom <= 0) continue;
-    const price = (target + tier.fixed) / denom;
-    if (price >= tier.min - 0.01 && price <= tier.max + 0.01) return Math.ceil(price * 100) / 100;
+  let price = Math.max(target, 1);
+  let prev = -1;
+  for (let i = 0; i < 30; i++) {
+    const denom = 1 - mkCommAt(mk, price) - tax;
+    if (denom <= 0) return 0;
+    const next = (target + mkFixedAt(mk, price) + mkShipAt(mk, price, manualShip)) / denom;
+    if (Math.abs(next - price) < 0.005) { price = next; break; }
+    // oscilação entre faixas (ex.: cruzando R$79): fica com o maior, que garante a margem
+    if (Math.abs(next - prev) < 0.005) { price = Math.max(next, price); break; }
+    prev = price;
+    price = next;
   }
-  const last = mk.tiers[mk.tiers.length - 1];
-  const denom = 1 - last.comm - tax;
-  if (denom <= 0) return 0;
-  return Math.ceil(((target + last.fixed) / denom) * 100) / 100;
+  return Math.ceil(price * 100) / 100;
 }
 
-/** Resultado completo (taxas, imposto, lucro, margem real) para um preço. */
-function mkResultAtPrice(mk, price, totalCost, taxPct) {
-  const tier = mk.tiers.find((t) => price >= t.min && price <= t.max) || mk.tiers[mk.tiers.length - 1];
-  const fees = price > 0 ? tier.comm * price + tier.fixed : 0;
+/** Resultado completo (taxas, frete, imposto, lucro, margem real) para um preço. */
+function mkResultAtPrice(mk, price, totalCost, taxPct, manualShip) {
+  const fees = price > 0 ? mkCommAt(mk, price) * price + mkFixedAt(mk, price) : 0;
+  const ship = price > 0 ? mkShipAt(mk, price, manualShip) : 0;
   const tax = price * ((taxPct || 0) / 100);
-  const profit = price - totalCost - fees - tax;
+  const profit = price - totalCost - fees - ship - tax;
   const margin = price > 0 ? (profit / price) * 100 : 0;
-  return { id: mk.id, label: mk.label, color: mk.color, price, fees, tax, profit, margin, note: mk.noteFor(price) };
+  return { id: mk.id, label: mk.label, color: mk.color, price, fees, ship, tax, profit, margin, note: mk.noteFor(price) };
 }
 
 /** Alguma seleção fica inviável (comissão + imposto >= 100%)? */
 function hasImpossibleMargin(taxPct, ids) {
   const tax = (taxPct || 0) / 100;
+  const SAMPLES = [5, 25, 60, 90, 150, 300];
   return MARKETPLACES.filter((m) => !ids || ids.includes(m.id))
-    .some((m) => m.tiers.every((t) => 1 - t.comm - tax <= 0));
+    .some((m) => SAMPLES.every((p) => 1 - mkCommAt(m, p) - tax <= 0));
 }
 
 /* ---------- Navegação do app ---------- */
