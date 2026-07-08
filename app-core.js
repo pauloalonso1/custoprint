@@ -396,14 +396,32 @@ function renderAppChrome(active, lead, plan) {
   const el = document.getElementById("appChrome");
   if (!el) return;
   const isPro = plan === "pro";
-  const first = esc((lead?.nome || "").split(" ")[0]);
+  const initial = esc(((lead?.nome || "?").trim()[0] || "?").toUpperCase());
   el.innerHTML =
     '<header class="topbar">' +
       '<a class="logo" href="index.html"><span class="mk">' + LOGO_SVG + '</span>CALC<span class="acid">PRO 3D</span></a>' +
       '<div class="topbar-right">' +
-        '<span class="welcome">Olá, <b>' + first + '</b></span>' +
         '<a class="plan-badge' + (isPro ? " pro" : "") + '" href="planos.html" title="Ver planos">' + (isPro ? "Pro" : "Free") + "</a>" +
-        '<button class="btn btn-sm" onclick="appLogout()">Sair</button>' +
+        '<div class="user-menu">' +
+          '<button class="avatar-btn" id="avatarBtn" aria-haspopup="menu" aria-expanded="false" title="Minha conta" onclick="toggleUserMenu(event)">' + initial + "</button>" +
+          '<div class="user-pop" id="userPop" role="menu">' +
+            '<div class="up-head">' +
+              '<span class="up-avatar">' + initial + "</span>" +
+              '<div class="up-id"><b>' + esc(lead?.nome || "") + "</b><span>" + esc(lead?.email || "") + "</span></div>" +
+            "</div>" +
+            '<a class="up-item" href="planos.html" role="menuitem">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>' +
+              "Meu plano" + '<span class="tag-pro">' + (isPro ? "Pro" : "Free") + "</span>" +
+            "</a>" +
+            '<a class="up-item" href="configuracoes.html" role="menuitem">' +
+              (TAB_ICONS["configuracoes.html"] || "") + "Configurações" +
+            "</a>" +
+            '<button class="up-item danger" role="menuitem" onclick="appLogout()">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>' +
+              "Sair" +
+            "</button>" +
+          "</div>" +
+        "</div>" +
       "</div>" +
     "</header>" +
     '<nav class="app-tabs" aria-label="Navegação do app">' +
@@ -423,6 +441,32 @@ function renderAppChrome(active, lead, plan) {
       ).join("") +
     "</nav>";
 }
+
+/* ---------- Menu do usuário (avatar) ---------- */
+function toggleUserMenu(e) {
+  e.stopPropagation();
+  const pop = document.getElementById("userPop");
+  const btn = document.getElementById("avatarBtn");
+  if (!pop || !btn) return;
+  const open = pop.classList.toggle("open");
+  btn.setAttribute("aria-expanded", String(open));
+}
+document.addEventListener("click", (e) => {
+  const pop = document.getElementById("userPop");
+  if (pop && pop.classList.contains("open") && !e.target.closest(".user-menu")) {
+    pop.classList.remove("open");
+    document.getElementById("avatarBtn")?.setAttribute("aria-expanded", "false");
+  }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const pop = document.getElementById("userPop");
+    if (pop && pop.classList.contains("open")) {
+      pop.classList.remove("open");
+      document.getElementById("avatarBtn")?.setAttribute("aria-expanded", "false");
+    }
+  }
+});
 
 /** HTML de parede Pro para páginas inteiras. */
 function proWallHTML(title, desc) {

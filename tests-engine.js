@@ -2,7 +2,7 @@
 global.localStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 global.crypto = require('crypto');
 global.window = { location: {} };
-global.document = { getElementById: () => null };
+global.document = { getElementById: () => null, addEventListener: () => {} };
 global.getSupabase = () => { throw new Error('offline'); };
 global.getSession = async () => null;
 global.logoutUser = async () => {};
