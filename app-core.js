@@ -369,12 +369,21 @@ function hasImpossibleMargin(taxPct, ids) {
 
 /* ---------- Navegação do app ---------- */
 const APP_TABS = [
-  { href: "calculadora.html", label: "Calculadora", pro: false },
-  { href: "pecas.html", label: "Peças", pro: false },
-  { href: "clientes.html", label: "Clientes", pro: true },
-  { href: "orcamentos.html", label: "Orçamentos", pro: true },
-  { href: "configuracoes.html", label: "Configurações", pro: false },
+  { href: "calculadora.html", label: "Calculadora", short: "Calcular", pro: false },
+  { href: "pecas.html", label: "Peças", short: "Peças", pro: false },
+  { href: "clientes.html", label: "Clientes", short: "Clientes", pro: true },
+  { href: "orcamentos.html", label: "Orçamentos", short: "Orçam.", pro: true },
+  { href: "configuracoes.html", label: "Configurações", short: "Config", pro: false },
 ];
+
+/* Ícones da navegação inferior (mobile) */
+const TAB_ICONS = {
+  "calculadora.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/></svg>',
+  "pecas.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+  "clientes.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  "orcamentos.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+  "configuracoes.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+};
 
 const LOGO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="6" rx="1"/><path d="M6 14H4a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg>';
 const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
@@ -401,6 +410,15 @@ function renderAppChrome(active, lead, plan) {
       APP_TABS.map((t) =>
         '<a class="app-tab' + (t.href === active ? " active" : "") + '" href="' + t.href + '">' +
           t.label + (t.pro && !isPro ? ' <span class="tag-pro">Pro</span>' : "") +
+        "</a>"
+      ).join("") +
+    "</nav>" +
+    '<nav class="bottom-nav" aria-label="Navegação inferior">' +
+      APP_TABS.map((t) =>
+        '<a class="bn-item' + (t.href === active ? " active" : "") + '" href="' + t.href + '"' +
+          (t.href === active ? ' aria-current="page"' : "") + ">" +
+          '<span class="bn-icon">' + (TAB_ICONS[t.href] || "") + "</span>" +
+          '<span class="bn-label">' + t.short + (t.pro && !isPro ? '<span class="bn-pro">Pro</span>' : "") + "</span>" +
         "</a>"
       ).join("") +
     "</nav>";
